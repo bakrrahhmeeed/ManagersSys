@@ -1,0 +1,236 @@
+.modal-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0,0,0,.45);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 2000;
+}
+
+.modal{
+    width:650px;
+    max-width:90vw;
+    max-height:90vh;
+
+    overflow-y:auto;
+
+    background:#fff;
+    border-radius:16px;
+    padding:22px;
+
+    box-shadow:0 20px 45px rgba(0,0,0,.18);
+    animation: popup .25s ease;
+}
+
+@keyframes popup{
+
+    from{
+
+        transform: scale(.9);
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:scale(1);
+        opacity:1;
+
+    }
+
+}
+
+.modal h2{
+
+    margin-bottom:25px;
+
+    color:#2f3b52;
+
+    border-bottom:1px solid #ececec;
+
+    padding-bottom:15px;
+
+}
+
+.form-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:20px;
+
+}
+
+.full-width{
+
+    grid-column:1/3;
+
+}
+
+.form-group{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.form-group label{
+
+    margin-bottom:8px;
+
+    font-weight:600;
+
+    color:#555;
+
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+
+    border:1px solid #d9dde3;
+
+    border-radius:10px;
+
+    padding:12px;
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:.25s;
+
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+
+    border-color:#e31b23;
+
+    box-shadow:0 0 0 4px rgba(227,27,35,.08);
+
+}
+
+.form-group textarea{
+
+    resize:none;
+
+    height:110px;
+
+}
+
+.checkbox-group{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-top:5px;
+
+}
+
+.checkbox-group input{
+
+    width:18px;
+
+    height:18px;
+
+}
+
+.checkbox-group label{
+
+    margin:0;
+
+    font-weight:600;
+
+}
+
+.modal-buttons{
+
+    margin-top:30px;
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:15px;
+
+}
+
+.cancel-btn,
+.done-btn{
+
+    width:140px;
+
+    height:48px;
+
+    border:none;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.cancel-btn{
+
+    background:#e6e6e6;
+
+}
+
+.cancel-btn:hover{
+
+    background:#d3d3d3;
+
+}
+
+.done-btn{
+
+    background:#e31b23;
+
+    color:white;
+
+}
+
+.done-btn:hover{
+
+    background:#c8161d;
+
+}
+
+.departments-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.department-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.department-item input {
+    margin: 0;
+}

@@ -1,0 +1,2090 @@
+/* =========================================================
+   DASHBOARD
+   FULL SCREEN DESKTOP LAYOUT
+   ========================================================= */
+
+.dashboard-page {
+  width: 100%;
+  min-height: 100vh;
+  height: auto;
+
+  padding: 16px 24px 40px;
+
+  box-sizing: border-box;
+
+  background: #f5f6f8;
+
+  overflow: visible;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+.dashboard-stats {
+  flex: 0 0 72px;
+
+  height: 72px;
+  min-height: 72px;
+
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-bottom: 14px;
+}
+
+
+.stat-card {
+  min-width: 0;
+
+  height: 72px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 12px 16px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 11px;
+
+  border-radius: 10px;
+
+  font-size: 19px;
+}
+
+
+.projects-icon {
+  background: #eef2ff;
+}
+
+.tasks-icon {
+  background: #eef2ff;
+}
+
+.users-icon {
+  background: #f3e8ff;
+}
+
+.overdue-icon {
+  background: #fff1f2;
+}
+
+.completed-icon {
+  background: #ecfdf5;
+}
+
+
+.stat-content {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+
+.stat-content span {
+  font-size: 12px;
+
+  line-height: 16px;
+
+  color: #6b7280;
+
+  white-space: nowrap;
+}
+
+
+.stat-content strong {
+  margin-top: 2px;
+
+  font-size: 24px;
+
+  line-height: 26px;
+
+  color: #111827;
+}
+
+.projects-card-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 14px;
+
+  min-height: 0;
+}
+
+
+/* =========================================================
+   MAIN GRID
+
+   Columns:
+   Overall Progress = 30%
+   Tasks Status      = 30%
+   Deadlines         = 40%
+
+   Bottom:
+   Recent Projects = full width
+
+   Bottom row is intentionally taller.
+   ========================================================= */
+
+.dashboard-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 0.75fr)
+    minmax(0, 0.75fr)
+    minmax(0, 1fr);
+
+  grid-template-rows:
+    300px
+    auto;
+
+  gap: 14px;
+
+  overflow: visible;
+
+  flex: none;
+  min-height: 0;
+}
+
+
+/* =========================================================
+   COMMON PANELS
+   ========================================================= */
+
+.dashboard-panel {
+  min-width: 0;
+  min-height: 0;
+
+  padding: 15px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 13px;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   PANEL HEADER
+   ========================================================= */
+
+.panel-header {
+  height: 30px;
+  min-height: 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+}
+
+
+.panel-header h2 {
+  margin: 0;
+
+  font-size: 16px;
+
+  line-height: 20px;
+
+  font-weight: 750;
+
+  color: #111827;
+
+  letter-spacing: -0.2px;
+}
+
+
+/* =========================================================
+   OVERALL PROJECT PROGRESS
+   ========================================================= */
+
+.progress-panel {
+  grid-column: 1;
+  grid-row: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+.overall-progress-content {
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.overall-progress-chart {
+  position: relative;
+
+  width: 100%;
+
+  height: 185px;
+
+  min-height: 185px;
+}
+
+
+.overall-progress-chart
+.recharts-responsive-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+.overall-progress-center {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  transform:
+    translate(-50%, -50%);
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  pointer-events: none;
+}
+
+
+.overall-progress-center strong {
+  color: #111827;
+
+  font-size: 31px;
+
+  line-height: 34px;
+
+  font-weight: 800;
+}
+
+
+.overall-progress-center span {
+  margin-top: 3px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   PROGRESS INFO
+   ========================================================= */
+.overall-progress-chart {
+  position: relative;
+
+  width: 58%;
+  height: 220px;
+  min-height: 220px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.overall-progress-info {
+  display: flex;
+  
+
+  flex-direction: column;
+
+  gap: 9px;
+}
+
+
+.progress-info-highlight {
+  min-height: 51px;
+
+  padding: 9px 11px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  box-sizing: border-box;
+
+  background: #ecfdf5;
+
+  border-radius: 9px;
+}
+
+
+.progress-info-icon {
+  font-size: 23px;
+
+  line-height: 1;
+
+  color: #16a34a;
+}
+
+
+.progress-info-highlight > div {
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+
+.progress-info-highlight strong {
+  font-size: 11px;
+
+  line-height: 15px;
+
+  color: #374151;
+}
+
+
+.progress-info-highlight span {
+  margin-top: 2px;
+
+  font-size: 9px;
+
+  line-height: 12px;
+
+  color: #6b7280;
+}
+
+
+.progress-summary-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  min-height: 20px;
+
+  font-size: 11px;
+
+  color: #4b5563;
+}
+
+
+.progress-summary-row > div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+
+.progress-summary-row strong {
+  color: #111827;
+
+  font-size: 11px;
+}
+
+
+.summary-dot {
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+
+  display: inline-block;
+}
+
+
+.completed-dot {
+  background: #22c55e;
+}
+
+
+.remaining-dot {
+  background: #d1d5db;
+}
+
+
+/* =========================================================
+   TASKS BY STATUS
+   ========================================================= */
+
+.status-panel {
+  grid-column: 2;
+  grid-row: 1;
+
+  position: relative;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+
+.status-chart {
+  position: relative;
+
+  width: 58%;
+  height: 220px;
+  min-height: 220px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.status-chart
+.recharts-responsive-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.status-content {
+  flex: 1;
+
+  min-height: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+}
+
+
+.status-total {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  transform:
+    translate(-50%, -50%);
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  pointer-events: none;
+}
+
+
+.status-total strong {
+  font-size: 27px;
+
+  line-height: 30px;
+
+  color: #111827;
+
+  font-weight: 800;
+}
+
+
+.status-total span {
+  margin-top: 3px;
+
+  font-size: 10px;
+
+  color: #6b7280;
+}
+
+
+.status-list {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+
+  margin-top: 0;
+}
+
+
+.status-item {
+  display: grid;
+
+  grid-template-columns: 1fr auto auto;
+
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 24px;
+
+  font-size: 12px;
+
+  color: #6b7280;
+}
+
+.status-item strong {
+  color: #374151;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.status-item > span:last-child {
+  color: #9ca3af;
+
+  font-size: 11px;
+}
+
+
+.status-name {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+
+  flex: 0 0 8px;
+
+  border-radius: 50%;
+}
+
+
+.status-item strong {
+  color: #374151;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+
+.status-item > span:last-child {
+  color: #9ca3af;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   UPCOMING DEADLINES
+   ========================================================= */
+
+.deadlines-panel {
+  grid-column: 3;
+  grid-row: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.deadlines-panel .panel-header {
+  flex: 0 0 30px;
+}
+
+
+/* =========================
+   DEADLINE LIST
+========================= */
+
+.deadline-list {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding-right: 6px;
+
+  box-sizing: border-box;
+
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+
+/* =========================
+   DEADLINE CARD
+========================= */
+
+.deadline-item {
+  min-height: 68px;
+
+  padding: 12px 14px;
+
+  display: grid;
+
+  /*
+    dot | information | date
+  */
+  grid-template-columns:
+    10px
+    minmax(0, 1fr)
+    105px;
+
+  align-items: center;
+
+  gap: 10px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: #fafafa;
+
+  flex-shrink: 0;
+}
+
+.deadline-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+
+/* =========================
+   DOT
+========================= */
+
+.deadline-dot {
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================
+   TASK INFORMATION
+========================= */
+
+.deadline-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.deadline-info strong {
+  font-size: 13px;
+
+  line-height: 17px;
+
+  color: #1f2937;
+
+  font-weight: 700;
+
+  display: -webkit-box;
+
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+.deadline-info span {
+  margin-top: 4px;
+
+  font-size: 11px;
+
+  line-height: 14px;
+
+  color: #8b95a5;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================
+   DATE + REMAINING
+========================= */
+
+.deadline-date {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  justify-content: center;
+
+  text-align: right;
+
+  white-space: nowrap;
+}
+
+.deadline-date strong {
+  font-size: 11px;
+
+  line-height: 15px;
+
+  color: #ef4444;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.deadline-date span {
+  margin-top: 3px;
+
+  font-size: 10px;
+
+  line-height: 13px;
+
+  color: #ef4444;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.overdue-text {
+  color: #dc2626 !important;
+}
+
+
+/* =========================
+   SCROLLBAR
+========================= */
+
+.deadline-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.deadline-list::-webkit-scrollbar-track {
+  background: #f1f3f5;
+
+  border-radius: 10px;
+}
+
+.deadline-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+
+  border-radius: 10px;
+}
+
+.deadline-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =========================================================
+   PRIORITY
+   ========================================================= */
+
+.priority-panel {
+  grid-column: 3;
+  grid-row: 2;
+
+  display: none;
+}
+
+
+/* =========================================================
+   RECENT PROJECTS
+
+   FULL WIDTH
+   TALLER BOTTOM SECTION
+   INTERNAL SCROLL
+   ========================================================= */
+
+.recent-projects-panel {
+  grid-column: 1 / 4;
+  grid-row: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 360px;
+
+  padding: 18px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PANEL HEADER
+   ========================================================= */
+
+.recent-projects-panel .panel-header {
+  flex: 0 0 40px;
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+   ========================================================= */
+
+.projects-table-wrapper {
+  flex: 1;
+
+  min-height: 0;
+
+  width: 100%;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding-right: 5px;
+
+  box-sizing: border-box;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #cbd5e1
+    transparent;
+}
+
+
+.projects-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+
+.projects-table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.projects-table-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.projects-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+}
+
+
+/* =========================================================
+   TABLE HEADERS
+   ========================================================= */
+
+.projects-table th {
+  height: 48px;
+
+  padding: 12px 18px;
+
+  text-align: left;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  color: #475569;
+
+  background: #f1f5f9;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 2;
+}
+
+
+.projects-table th:first-child {
+  border-radius: 9px 0 0 9px;
+}
+
+
+.projects-table th:last-child {
+  border-radius: 0 9px 9px 0;
+}
+
+
+/* =========================================================
+   TABLE ROWS
+   ========================================================= */
+
+.projects-table td {
+  height: 70px;
+
+  padding: 12px 18px;
+
+  font-size: 13px;
+
+  color: #4b5563;
+
+  border-bottom: 1px solid #f1f5f9;
+
+  vertical-align: middle;
+}
+
+
+.projects-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+
+.projects-table tbody tr:hover {
+  background: #fafafa;
+}
+
+
+/* =========================================================
+   PROJECT NAME
+   ========================================================= */
+
+.projects-table td strong {
+  display: block;
+
+  color: #1f2937;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  line-height: 1.4;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   TABLE PROGRESS
+   ========================================================= */
+
+.table-progress {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+
+/* Progress percentage */
+
+.table-progress > span {
+  width: 40px;
+
+  flex-shrink: 0;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  color: #374151;
+}
+
+
+/* Progress background */
+
+.progress-bar {
+  width: 110px;
+
+  height: 8px;
+
+  border-radius: 10px;
+
+  background: #e5e7eb;
+
+  overflow: hidden;
+}
+
+
+/* Progress fill */
+
+.progress-bar div {
+  height: 100%;
+
+  background: #22c55e;
+
+  border-radius: 10px;
+
+  transition: width 0.3s ease;
+}
+
+
+/* =========================================================
+   TASK COUNT
+   ========================================================= */
+
+.task-count {
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #374151;
+}
+
+
+/* =========================================================
+   PROJECT MANAGER
+   ========================================================= */
+
+.project-manager {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.manager-avatar {
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 32px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #f1f5f9;
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+
+.manager-name {
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #374151;
+}
+
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+.status-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 6px 11px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+.status-completed {
+  background: #dcfce7;
+
+  color: #16a34a;
+}
+
+
+.status-progress {
+  background: #dbeafe;
+
+  color: #2563eb;
+}
+
+
+.status-overdue {
+  background: #fee2e2;
+
+  color: #dc2626;
+}
+
+
+.status-hold {
+  background: #fef3c7;
+
+  color: #d97706;
+}
+
+
+.status-blocked {
+  background: #fee2e2;
+
+  color: #dc2626;
+}
+
+
+.status-planning {
+  background: #f1f5f9;
+
+  color: #475569;
+}
+
+
+/* =========================================================
+   VIEW ALL BUTTON
+   ========================================================= */
+
+.view-all-btn {
+  flex: 0 0 auto;
+
+  border: none;
+
+  background: #e31b23;
+
+  color: #ffffff;
+
+  padding: 8px 16px;
+
+  border-radius: 7px;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.view-all-btn:hover {
+  background: #c9141b;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   PROJECT FOOTER
+   ========================================================= */
+
+.projects-footer {
+  flex: 0 0 32px;
+
+  min-height: 32px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding-top: 5px;
+
+  box-sizing: border-box;
+
+  color: #6b7280;
+
+  font-size: 11px;
+
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   PRIORITY COLORS
+   ========================================================= */
+
+.priority-critical {
+  background: #ef4444;
+}
+
+
+.priority-high {
+  background: #f97316;
+}
+
+
+.priority-medium {
+  background: #f59e0b;
+}
+
+
+.priority-low {
+  background: #22c55e;
+}
+
+
+.priority-default {
+  background: #94a3b8;
+}
+/* =========================================================
+   EMPTY
+   ========================================================= */
+
+.empty-chart,
+.empty-state {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  color: #9ca3af;
+
+  font-size: 12px;
+
+  text-align: center;
+}
+
+
+.empty-table {
+  text-align: center !important;
+
+  color: #9ca3af !important;
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.dashboard-loading {
+  height: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  color: #6b7280;
+}
+
+
+.dashboard-spinner {
+  width: 32px;
+  height: 32px;
+
+  border: 3px solid #e5e7eb;
+
+  border-top-color: #e31b23;
+
+  border-radius: 50%;
+
+  animation:
+    dashboard-spin
+    0.8s
+    linear
+    infinite;
+
+  margin-bottom: 10px;
+}
+
+
+@keyframes dashboard-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.dashboard-error {
+  height: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+}
+
+
+.dashboard-error h2 {
+  margin-bottom: 8px;
+
+  color: #111827;
+}
+
+
+.dashboard-error p {
+  color: #ef4444;
+
+  margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 1101px) {
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL SCREENS
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .dashboard-page {
+    height: auto;
+
+    min-height: 100vh;
+
+    overflow-y: auto;
+
+    padding: 14px;
+  }
+
+
+  .dashboard-stats {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    height: auto;
+  }
+
+
+  .stat-card {
+    height: 72px;
+  }
+
+
+  .dashboard-grid {
+    grid-template-columns:
+      1fr 1fr;
+
+    grid-template-rows: auto;
+
+    height: auto;
+
+    overflow: visible;
+  }
+
+
+  .progress-panel,
+  .status-panel,
+  .deadlines-panel,
+  .recent-projects-panel {
+    grid-column: auto;
+
+    grid-row: auto;
+
+    min-height: 330px;
+  }
+
+
+  .recent-projects-panel {
+    grid-column: 1 / 3;
+
+    min-height: 430px;
+  }
+
+
+  .priority-panel {
+    display: none;
+  }
+
+
+  .deadline-list,
+  .projects-table-wrapper {
+    overflow-y: auto;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .dashboard-page {
+    padding: 12px;
+
+    overflow-y: auto;
+  }
+
+
+  .dashboard-stats {
+    grid-template-columns: 1fr 1fr;
+
+    height: auto;
+  }
+
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+
+    grid-template-rows: auto;
+
+    overflow: visible;
+  }
+
+
+  .progress-panel,
+  .status-panel,
+  .deadlines-panel,
+  .recent-projects-panel {
+    grid-column: 1;
+
+    grid-row: auto;
+
+    min-height: 340px;
+  }
+
+
+  .recent-projects-panel {
+    min-height: 500px;
+  }
+
+
+  .projects-table {
+    min-width: 850px;
+  }
+
+
+  .projects-table-wrapper {
+    overflow-x: auto;
+
+    overflow-y: auto;
+  }
+
+
+  .overall-progress-chart {
+    height: 190px;
+  }
+
+
+  .status-chart {
+    height: 200px;
+  }
+
+}
+
+/* =========================================================
+   PROJECT MANAGER
+========================================================= */
+
+.project-manager-cell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  min-width: 150px;
+}
+
+.project-manager-avatar {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #f1f5f9;
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-manager-cell span {
+  font-size: 11px;
+  font-weight: 500;
+  color: #374151;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   RECENT PROJECTS - CARD GRID
+   ========================================================= */
+
+.recent-projects-panel {
+  grid-column: 1 / 4;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px;
+}
+
+.recent-projects-header {
+  flex: 0 0 42px;
+  min-height: 42px;
+  margin-bottom: 14px;
+}
+
+.recent-projects-header > div:first-child {
+  min-width: 0;
+}
+
+.recent-projects-subtitle {
+  display: block;
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.recent-projects-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.project-search-box {
+  width: 255px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.project-search-box:focus-within {
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.06);
+}
+
+.project-search-icon {
+  color: #94a3b8;
+  font-size: 20px;
+  line-height: 1;
+  transform: rotate(-20deg);
+}
+
+.project-search-box input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #1f2937;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.project-search-box input::placeholder {
+  color: #94a3b8;
+}
+
+.project-search-clear {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.projects-card-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dashboard-project-card {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  box-sizing: border-box;
+  border: 1px solid #e5e7eb;
+  border-radius: 13px;
+  border-bottom: 3px solid #e31b23;
+  background: #ffffff;
+  color: #172033;
+  cursor: pointer;
+  font-family: inherit;
+  appearance: none;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.dashboard-project-card:hover {
+  transform: translateY(-2px);
+  border-color: #dbe1e8;
+  box-shadow: 0 9px 22px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-project-card:focus-visible {
+  outline: 3px solid rgba(227, 27, 35, 0.18);
+  outline-offset: 2px;
+}
+
+.dashboard-project-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+}
+
+.dashboard-project-icon {
+  width: 39px;
+  height: 39px;
+  flex: 0 0 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f3e8ff;
+  font-size: 18px;
+}
+
+.dashboard-project-title {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 1px;
+}
+
+.dashboard-project-title strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #172033;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 800;
+}
+
+.dashboard-project-title span {
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 9px;
+  line-height: 12px;
+}
+
+.dashboard-project-status {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 8px;
+  line-height: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dashboard-project-status.status-completed {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.dashboard-project-status.status-progress {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.dashboard-project-status.status-planning {
+  background: #f0e7ff;
+  color: #7c3aed;
+}
+
+.dashboard-project-status.status-hold {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.dashboard-project-card-body {
+  flex: 1;
+  min-height: 0;
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.dashboard-project-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-project-progress-circle {
+  --progress: 0deg;
+  --progress-color: #ef4444;
+  width: 76px;
+  height: 76px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--progress-color) var(--progress),
+    #e5e7eb var(--progress)
+  );
+}
+
+.dashboard-project-progress-circle::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.dashboard-project-progress-circle strong {
+  position: relative;
+  z-index: 1;
+  color: #172033;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.dashboard-project-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.dashboard-project-meta > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-project-meta span {
+  color: #94a3b8;
+  font-size: 8px;
+  line-height: 10px;
+}
+
+.dashboard-project-meta strong {
+  margin-top: 2px;
+  color: #334155;
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-project-priority {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 5px;
+}
+
+.dashboard-project-priority i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+}
+
+.dashboard-project-priority .priority-critical { background: #ef4444; }
+.dashboard-project-priority .priority-high { background: #f97316; }
+.dashboard-project-priority .priority-medium { background: #f59e0b; }
+.dashboard-project-priority .priority-low { background: #22c55e; }
+.dashboard-project-priority .priority-default { background: #94a3b8; }
+
+.strategic-yes {
+  color: #16a34a !important;
+}
+
+.strategic-no {
+  color: #475569 !important;
+}
+
+.dashboard-project-card-footer {
+  min-height: 42px;
+  margin-top: 10px;
+  padding-top: 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
+}
+
+.dashboard-project-manager {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-project-avatar {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.dashboard-project-manager > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-project-manager span {
+  color: #94a3b8;
+  font-size: 8px;
+  line-height: 10px;
+}
+
+.dashboard-project-manager strong {
+  max-width: 120px;
+  margin-top: 2px;
+  color: #334155;
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-project-arrow {
+  color: #94a3b8;
+  font-size: 17px;
+  line-height: 1;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.dashboard-project-card:hover .dashboard-project-arrow {
+  color: #e31b23;
+  transform: translateX(2px);
+}
+
+.projects-cards-footer {
+  flex: 0 0 32px;
+  min-height: 32px;
+  margin-top: 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.projects-cards-footer span {
+  display: none;
+}
+
+.projects-cards-footer button {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2563eb;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.projects-cards-footer button:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.projects-cards-empty {
+  flex: 1;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.projects-cards-empty strong {
+  color: #475569;
+  font-size: 13px;
+}
+
+.projects-cards-empty span {
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+@media (max-width: 1250px) {
+  .projects-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .recent-projects-header {
+    height: auto;
+    min-height: 0;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .recent-projects-actions {
+    width: 100%;
+  }
+
+  .project-search-box {
+    flex: 1;
+    width: auto;
+  }
+
+  .projects-card-grid {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
