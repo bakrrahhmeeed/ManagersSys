@@ -8,7 +8,7 @@ const erorrMMiddleware = require("./middleware/erorrMiddleware");
 
 const app = express();
 
-const PORT = process.env.PORT ;
+const PORT = process.env.PORT || 3001 ;
 
 const userRoutes = require("./routes/userRoutes")
 const authRoute = require("./routes/authRoute")
