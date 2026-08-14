@@ -215,10 +215,10 @@ const updateTask = async (taskId, data) => {
         AssignedToUserID,
         priority,
         Status,
-        ProgressPercent,
         DueDate,
         CompletedDate,
-        Blocker
+        Blocker,
+        departmentId
     } = data;
 
     const existingTask = await sql.query`
@@ -291,10 +291,9 @@ if (AssignedToUserID !== undefined) {
             AssignedToUserID = COALESCE(${AssignedToUserID}, AssignedToUserID),
             PriorityLevel = COALESCE(${priority}, PriorityLevel),
             Status = COALESCE(${finalStatus}, Status),
-            ProgressPercent = COALESCE(${finalProgress}, ProgressPercent),
             DueDate = COALESCE(${finalDueDate}, DueDate),
             CompletedDate = COALESCE(${finalCompletedDate}, CompletedDate),
-            Blocker = COALESCE(${Blocker}, Blocker)
+            Blocker = COALESCE(${Blocker}, Blocker),
         WHERE TaskID = ${taskId}
     `;
 
@@ -330,26 +329,40 @@ const deleteTask = async (taskId) => {
 
 const getTask = async (taskId) => {
     const result = await sql.query`
-        SELECT
+SELECT
     t.*,
-            t.AssignedTo AS AssignedToUserID,
-            u.FullName AS AssignedToName,
+    t.AssignedTo AS AssignedToUserID,
+    u.FullName AS AssignedToName,
     s.StageName,
-    p.ProjectName
+    p.ProjectName,
+    d.DepartmentName AS DepartmentName
 FROM ProjectTasks t
+
 JOIN Users u
     ON t.AssignedTo = u.UserID
+
 JOIN ProjectStages s
     ON t.StageID = s.StageID
+
 JOIN Projects p
     ON t.ProjectID = p.ProjectID
+
+LEFT JOIN Departments d
+    ON t.DepartmentID = d.DepartmentID
+
 WHERE t.TaskID = ${taskId}
     `;
 
 
-    const comments = await sql.query`
-    SELECT * FROM Comments
-    WHERE ReferenceID =  ${taskId}`
+const comments = await sql.query`
+    SELECT
+        c.*,
+        u.FullName AS CreatedByName
+    FROM Comments c
+    LEFT JOIN Users u
+        ON c.CreatedBy = u.UserID
+    WHERE c.ReferenceID = ${taskId}
+`;
     
 
     if (result.recordset.length === 0) {

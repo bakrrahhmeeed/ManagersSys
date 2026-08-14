@@ -334,7 +334,28 @@ const TaskDetails = () => {
                         </div>
 
                     </div>
+
+                    {/* Department */}
+
+<div className="task-details-info-item">
+    <div className="task-details-info-icon">
+        <FaProjectDiagram />
+    </div>
+
+    <div>
+        <span>Department</span>
+
+        <strong>
+            {task.DepartmentName || "—"}
+        </strong>
+
+        <small>
+            Department ID: {task.DepartmentID || "—"}
+        </small>
+    </div>
+</div>
                 </div>
+               
 
                 {/* =========================
                     DESCRIPTION + DATES
@@ -464,7 +485,7 @@ const TaskDetails = () => {
 
                                     <div className="comment-avatar">
                                         {String(
-                                            comment.CreatedBy || "U"
+                                            comment.CreatedByName || "U"
                                         )
                                             .charAt(0)
                                             .toUpperCase()}
@@ -475,7 +496,7 @@ const TaskDetails = () => {
                                         <div className="comment-header">
 
                                             <strong>
-                                                User #{comment.CreatedBy}
+                                                {comment.CreatedByName}
                                             </strong>
 
                                             <span>
