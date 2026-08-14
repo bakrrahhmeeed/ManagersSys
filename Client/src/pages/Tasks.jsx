@@ -426,10 +426,14 @@ function Tasks() {
                         </p>
                     </div>
 
-                    <button className="add-task-btn">
-                        <span>+</span>
-                        Add Task
-                    </button>
+                    <button
+    type="button"
+    className="add-task-btn"
+    onClick={() => navigate("/tasks/add")}
+>
+    <span>+</span>
+    Add Task
+</button>
 
                 </div>
 
@@ -986,11 +990,23 @@ function Tasks() {
     👁
 </button>
 
-                                                            <button
-                                                                type="button"
-                                                                title="Edit task"
-                                                                className="task-action-btn"
-                                                            >
+<button
+
+    type="button"
+
+    title="Edit task"
+
+    className="task-action-btn"
+
+    onClick={(e) => {
+
+        e.stopPropagation();
+
+        navigate(`/tasks/${task.TaskID}/edit`);
+
+    }}
+
+>
                                                                 ✎
                                                             </button>
 

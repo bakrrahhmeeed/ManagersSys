@@ -209,7 +209,7 @@ const createTask = async (data, userID) => {
 };
 
 const updateTask = async (taskId, data) => {
-    const { 
+    const {
         TaskTitle,
         TaskDescription,
         AssignedToUserID,
@@ -217,9 +217,12 @@ const updateTask = async (taskId, data) => {
         Status,
         DueDate,
         CompletedDate,
-        Blocker,
-        departmentId
+        Blocker
     } = data;
+
+    // =========================================
+    // Get current task
+    // =========================================
 
     const existingTask = await sql.query`
         SELECT *
@@ -235,73 +238,178 @@ const updateTask = async (taskId, data) => {
 
     const currentTask = existingTask.recordset[0];
 
-    const finalStatus = Status ?? currentTask.Status;
-    const finalProgress = ProgressPercent ?? currentTask.ProgressPercent;
-    const finalDueDate = DueDate ?? currentTask.DueDate;
-    const finalCompletedDate = CompletedDate ?? currentTask.CompletedDate;
+    const departmentId = currentTask.DepartmentID;
 
-    if (finalProgress < 0 || finalProgress > 100) {
-        const error = new Error("Progress must be between 0 and 100.");
+    // =========================================
+    // Final values
+    // =========================================
+
+    const finalStatus =
+        Status ?? currentTask.Status;
+
+    const finalDueDate =
+        DueDate ?? currentTask.DueDate;
+
+    const finalCompletedDate =
+        CompletedDate ?? currentTask.CompletedDate;
+
+    // IMPORTANT:
+    // If Blocker is explicitly sent as null,
+    // we should use null and clear the old blocker.
+    //
+    // If Blocker is undefined,
+    // it means the field was not sent,
+    // so keep the existing blocker.
+
+    const finalBlocker =
+        Blocker !== undefined
+            ? Blocker
+            : currentTask.Blocker;
+
+
+    // =========================================
+    // Completed Date validation
+    // =========================================
+
+    if (
+        finalStatus === "Completed" &&
+        !finalCompletedDate
+    ) {
+        const error = new Error(
+            "Completed date must be provided when marking a task as completed."
+        );
+
         error.statusCode = 400;
         throw error;
     }
 
-    if (finalStatus === "Completed" && !finalCompletedDate) {
-        const error = new Error("Completed date must be provided when marking a task as completed.");
+
+    if (
+        finalStatus !== "Completed" &&
+        finalCompletedDate
+    ) {
+        const error = new Error(
+            "Completed date should only be set when the task is marked as completed."
+        );
+
         error.statusCode = 400;
         throw error;
     }
 
-    if (finalStatus !== "Completed" && finalCompletedDate) {
-        const error = new Error("Completed date should only be set when the task is marked as completed.");
+
+    // =========================================
+    // Blocker validation
+    // =========================================
+
+    if (
+        finalStatus !== "Blocked" &&
+        finalBlocker
+    ) {
+        const error = new Error(
+            "Blocker must be empty when task status is not Blocked."
+        );
+
         error.statusCode = 400;
         throw error;
     }
 
-    if (finalStatus === "Completed" && finalProgress !== 100) {
-    const error = new Error("Completed task must have 100% progress.");
-    error.statusCode = 400;
-    throw error;
-}
 
-if (AssignedToUserID !== undefined) {
+    // =========================================
+    // Validate Assigned User
+    // =========================================
 
-    const user = await sql.query`
-        SELECT UserID
-        FROM Users
-        WHERE UserID = ${AssignedToUserID}
-        AND IsActive = 1
-    `;
+    if (AssignedToUserID !== undefined) {
 
-    if(user.recordset.length === 0){
+        const user = await sql.query`
+            SELECT UserID
+            FROM Users
+            WHERE UserID = ${AssignedToUserID}
+            AND DepartmentID = ${departmentId}
+            AND IsActive = 1
+        `;
 
-        const error = new Error("Assigned user not found.");
-        error.statusCode = 404;
-        throw error;
+        if (user.recordset.length === 0) {
+            const error = new Error(
+                "Assigned user must belong to the task department."
+            );
 
+            error.statusCode = 400;
+            throw error;
+        }
     }
 
-}
+
+    // =========================================
+    // Update Task
+    // =========================================
 
     await sql.query`
         UPDATE ProjectTasks
-        SET 
-            TaskTitle = COALESCE(${TaskTitle}, TaskTitle),
-            TaskDescription = COALESCE(${TaskDescription}, TaskDescription),
-            AssignedToUserID = COALESCE(${AssignedToUserID}, AssignedToUserID),
-            PriorityLevel = COALESCE(${priority}, PriorityLevel),
-            Status = COALESCE(${finalStatus}, Status),
-            DueDate = COALESCE(${finalDueDate}, DueDate),
-            CompletedDate = COALESCE(${finalCompletedDate}, CompletedDate),
-            Blocker = COALESCE(${Blocker}, Blocker),
+        SET
+
+            TaskTitle =
+                COALESCE(
+                    ${TaskTitle},
+                    TaskTitle
+                ),
+
+            TaskDescription =
+                COALESCE(
+                    ${TaskDescription},
+                    TaskDescription
+                ),
+
+            AssignedTo =
+                COALESCE(
+                    ${AssignedToUserID},
+                    AssignedTo
+                ),
+
+            PriorityLevel =
+                COALESCE(
+                    ${priority},
+                    PriorityLevel
+                ),
+
+            Status =
+                COALESCE(
+                    ${finalStatus},
+                    Status
+                ),
+
+            DueDate =
+                COALESCE(
+                    ${finalDueDate},
+                    DueDate
+                ),
+
+            CompletedDate =
+                COALESCE(
+                    ${finalCompletedDate},
+                    CompletedDate
+                ),
+
+            Blocker =
+                ${finalBlocker}
+
         WHERE TaskID = ${taskId}
     `;
+
+
+    // =========================================
+    // Get updated task
+    // =========================================
 
     const updatedTask = await sql.query`
         SELECT *
         FROM ProjectTasks
         WHERE TaskID = ${taskId}
     `;
+
+
+    // =========================================
+    // Return
+    // =========================================
 
     return {
         message: "Task updated successfully",

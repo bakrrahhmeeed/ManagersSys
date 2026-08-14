@@ -261,6 +261,32 @@ WHERE ur.RoleID = 3;
     return result.recordset
   }
 
+
+
+  const getUsersByDepartment = async (departmentId) => {
+
+    const result = await sql.query`
+
+        SELECT
+
+            UserID,
+
+            FullName,
+
+            DepartmentID
+
+        FROM Users
+
+        WHERE DepartmentID = ${departmentId}
+
+        AND IsActive = 1
+
+    `;
+
+    return result.recordset;
+
+};
+
   module.exports = {
     getusers,
     addUser,
@@ -268,5 +294,6 @@ WHERE ur.RoleID = 3;
     deleteUser,
     getuserById,
     updateUserPss,
-    getProjectmanagers
+    getProjectmanagers,
+    getUsersByDepartment
   };

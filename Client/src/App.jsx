@@ -9,6 +9,7 @@ import Tasks from "./pages/Tasks";
 import Users from "./pages/Users";
 import AddTask from "./pages/AddTask";
 import TaskDetails from "./pages/TaskDetails";
+import EditTask from "./pages/EditTask";
 
 function App() {
   return (
@@ -30,6 +31,8 @@ function App() {
         <Route path="/tasks/add" element={<AddTask />} />
 
         <Route path="/tasks/:id" element={<TaskDetails />} />
+
+        <Route path="/tasks/:taskId/edit" element={<EditTask />} />
 
 
       </Routes>

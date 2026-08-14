@@ -34,14 +34,7 @@ const TaskDetails = () => {
 
                 const data = await getTask(id);
 
-                /*
-                    Backend response:
-
-                    [
-                        [task],
-                        [comments]
-                    ]
-                */
+ 
 
                 const taskData = data?.[0]?.[0];
                 const commentsData = data?.[1] || [];
@@ -190,6 +183,9 @@ const TaskDetails = () => {
                     </div>
 
                 </div>
+
+
+                
             </div>
 
 
@@ -207,6 +203,16 @@ const TaskDetails = () => {
 
                     <div className="task-details-card-header">
                         <h2>Task Information</h2>
+                        <button
+                        type="button"
+                        title="Edit task"
+                        className="task-action-btnn"
+                        onClick={(e) => {       
+                        e.stopPropagation();
+                        navigate(`/tasks/${task.TaskID}/edit`);}}>
+                                    ✎  Edit Task
+                        </button>
+                        
                     </div>
 
                     <div className="task-details-info-grid">

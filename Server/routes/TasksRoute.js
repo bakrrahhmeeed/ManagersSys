@@ -13,11 +13,11 @@ const {getAllTasks,
 
 
 
-router.get('/',authorizeRoles("Administrator"), getAllTasks);
-router.post('/',authorizeRoles("Administrator"), createTask);
-router.put('/:taskId',authorizeRoles("Administrator"), updateTask);
-router.delete('/:taskId', authorizeRoles('Administrator'), deleteTask);
-router.get('/:taskId', authorizeRoles('Administrator'), getTask);
+router.get('/', getAllTasks);
+router.post('/',authorizeRoles(Roles.ADMIN , Roles.PROJECT_MANAGER , Roles.DEPARTMENT_MANAGER), createTask);
+router.put('/:taskId',authorizeRoles(Roles.ADMIN ,Roles.DEPARTMENT_MANAGER , Roles.PROJECT_MANAGER), updateTask);
+router.delete('/:taskId', authorizeRoles(Roles.ADMIN), deleteTask);
+router.get('/:taskId', getTask);
 
 
 

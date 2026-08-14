@@ -6,7 +6,7 @@ const updateuservalidation = require("../middleware/updateUserValidation")
 const Roles = require("../constants/roles")
 
 const { 
-    getuser , addUser , updateUser , deleteUser , getuserById , updateUserPss , getProjectmanagers
+    getuser , addUser , updateUser , deleteUser , getuserById , updateUserPss , getProjectmanagers , getUsersByDepartment
 } = require("../controllers/userController");
 const { getRounds } = require("bcrypt");
 
@@ -37,6 +37,13 @@ router.put("/pass/:id",authorizeRoles(
 
 router.delete("/updatePassword",deleteUser);
 
+router.get(
+
+    "/department/:departmentId",
+
+    getUsersByDepartment
+
+);
 
 
 module.exports = router;

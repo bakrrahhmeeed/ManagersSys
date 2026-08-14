@@ -72,6 +72,29 @@ const userService = require("../services/userService")
   }
 
 
+
+
+const getUsersByDepartment = async (req, res, next) => {
+
+    try {
+
+        const users = await userService.getUsersByDepartment(
+
+            req.params.departmentId
+
+        );
+
+        res.status(200).json(users);
+
+    } catch (err) {
+
+        next(err);
+
+    }
+
+};
+
+
   module.exports = {
     getuser,
     addUser,
@@ -79,5 +102,6 @@ const userService = require("../services/userService")
     deleteUser,
     getuserById,
     updateUserPss,
-    getProjectmanagers
+    getProjectmanagers,
+    getUsersByDepartment
   };
