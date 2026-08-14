@@ -43,6 +43,7 @@ const validateUpdateProject = (req, res, next) => {
             "Completed",
             "On Hold",
             "Cancelled",
+            "Planning"
         ];
 
         if (!validStatus.includes(status)) {
@@ -60,11 +61,7 @@ const validateUpdateProject = (req, res, next) => {
         }
     }
 
-    if (sponsorId && !Number.isInteger(Number(sponsorId))) {
-        return res.status(400).json({
-            message: "Sponsor ID must be a number",
-        });
-    }
+
 
     if (projectManagerId && !Number.isInteger(Number(projectManagerId))) {
         return res.status(400).json({

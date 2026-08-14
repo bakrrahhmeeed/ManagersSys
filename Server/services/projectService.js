@@ -210,66 +210,192 @@ const createproject = async (data, createdBy) => {
 
 };
 
-const updateProject = async(id , data)=>{
+const updateProject = async (id, data) => {
 
-     const {
+    const {
         projectName,
         projectDescription,
         projectType,
         priorityLevel,
         status,
         targetEndDate,
-        sponsorId,
         projectManagerId,
-        departmentId,
         isStrategic,
-   
-    }= data;
+        departmentIds
+    } = data;
 
-    const result = await sql.query`
+    const transaction = new sql.Transaction();
 
-        UPDATE Projects
-        SET
-            ProjectName = COALESCE(${projectName}, ProjectName),
-            ProjectDescription = COALESCE(${projectDescription}, ProjectDescription),
-            ProjectType = COALESCE(${projectType}, ProjectType),
-            PriorityLevel = COALESCE(${priorityLevel}, PriorityLevel),
-            Status = COALESCE(${status}, Status),
-            TargetEndDate = COALESCE(${targetEndDate}, TargetEndDate),
-            SponsorID = COALESCE(${sponsorId}, SponsorID),
-            ProjectManagerID = COALESCE(${projectManagerId}, ProjectManagerID),
-            DepartmentID = COALESCE(${departmentId}, DepartmentID),
-            IsStrategic = COALESCE(${isStrategic}, IsStrategic)
+    try {
 
-        OUTPUT
-            INSERTED.ProjectID,
-            INSERTED.ProjectName,
-            INSERTED.ProjectDescription,
-            INSERTED.ProjectType,
-            INSERTED.PriorityLevel,
-            INSERTED.Status,
-            INSERTED.TargetEndDate,
-            INSERTED.SponsorID,
-            INSERTED.ProjectManagerID,
-            INSERTED.DepartmentID,
-            INSERTED.IsStrategic,
-            INSERTED.CreatedAt
-        WHERE ProjectID = ${id};
+        await transaction.begin();
 
-    `;
+        const request = new sql.Request(transaction);
 
-    if (!result.recordset.length) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
-}
+        // 1. Update Project
+        request.input("projectId", sql.Int, id);
+        request.input("projectName", sql.NVarChar, projectName ?? null);
+        request.input("projectDescription", sql.NVarChar, projectDescription ?? null);
+        request.input("projectType", sql.NVarChar, projectType ?? null);
+        request.input("priorityLevel", sql.NVarChar, priorityLevel ?? null);
+        request.input("status", sql.NVarChar, status ?? null);
+        request.input("targetEndDate", sql.Date, targetEndDate ?? null);
+        request.input("projectManagerId", sql.Int, projectManagerId ?? null);
+        request.input("isStrategic", sql.Bit, isStrategic ?? null);
+
+        const result = await request.query(`
+            UPDATE Projects
+            SET
+                ProjectName = COALESCE(@projectName, ProjectName),
+                ProjectDescription = COALESCE(@projectDescription, ProjectDescription),
+                ProjectType = COALESCE(@projectType, ProjectType),
+                PriorityLevel = COALESCE(@priorityLevel, PriorityLevel),
+                Status = COALESCE(@status, Status),
+                TargetEndDate = COALESCE(@targetEndDate, TargetEndDate),
+                ProjectManagerID = COALESCE(@projectManagerId, ProjectManagerID),
+                IsStrategic = COALESCE(@isStrategic, IsStrategic)
+
+            OUTPUT
+                INSERTED.ProjectID,
+                INSERTED.ProjectName,
+                INSERTED.ProjectDescription,
+                INSERTED.ProjectType,
+                INSERTED.PriorityLevel,
+                INSERTED.Status,
+                INSERTED.TargetEndDate,
+                INSERTED.ProjectManagerID,
+                INSERTED.IsStrategic,
+                INSERTED.CreatedAt
+
+            WHERE ProjectID = @projectId;
+        `);
+
+        if (!result.recordset.length) {
+            throw new Error("Project not found");
+        }
 
 
-return{
-    message: "Project updated successfully",
-  
-}
-}
+        // 2. Handle Project Departments
+        if (Array.isArray(departmentIds)) {
+
+            // Departments currently assigned to this project
+            const currentDepartmentsRequest = new sql.Request(transaction);
+
+            currentDepartmentsRequest.input(
+                "projectId",
+                sql.Int,
+                id
+            );
+
+            const currentDepartmentsResult =
+                await currentDepartmentsRequest.query(`
+                    SELECT DepartmentID
+                    FROM ProjectDepartments
+                    WHERE ProjectID = @projectId
+                `);
+
+            const currentDepartmentIds =
+                currentDepartmentsResult.recordset.map(
+                    row => row.DepartmentID
+                );
+
+
+            // Departments that were removed
+            const removedDepartmentIds =
+                currentDepartmentIds.filter(
+                    departmentId =>
+                        !departmentIds.includes(departmentId)
+                );
+
+
+            // 3. Check if removed departments have tasks
+            for (const departmentId of removedDepartmentIds) {
+
+                const taskCheckRequest =
+                    new sql.Request(transaction);
+
+                taskCheckRequest.input(
+                    "projectId",
+                    sql.Int,
+                    id
+                );
+
+                taskCheckRequest.input(
+                    "departmentId",
+                    sql.Int,
+                    departmentId
+                );
+
+                const taskCheck =
+                    await taskCheckRequest.query(`
+                        SELECT TOP 1 TaskID
+                        FROM ProjectTasks
+                        WHERE ProjectID = @projectId
+                        AND DepartmentID = @departmentId
+                    `);
+
+                if (taskCheck.recordset.length) {
+
+                    throw new Error(
+                        `Cannot remove Department ${departmentId} because it has tasks in this project`
+                    );
+                }
+            }
+
+
+            // 4. Delete departments that were removed
+            if (removedDepartmentIds.length) {
+
+                const deleteRequest =
+                    new sql.Request(transaction);
+
+                deleteRequest.input(
+                    "projectId",
+                    sql.Int,
+                    id
+                );
+
+                const placeholders =
+                    removedDepartmentIds
+                        .map((_, index) => `@departmentId${index}`)
+                        .join(", ");
+
+                removedDepartmentIds.forEach(
+                    (departmentId, index) => {
+
+                        deleteRequest.input(
+                            `departmentId${index}`,
+                            sql.Int,
+                            departmentId
+                        );
+
+                    }
+                );
+
+                await deleteRequest.query(`
+                    DELETE FROM ProjectDepartments
+                    WHERE ProjectID = @projectId
+                    AND DepartmentID IN (${placeholders})
+                `);
+            }
+        }
+
+
+        await transaction.commit();
+
+        return result.recordset[0];
+
+    } catch (error) {
+
+        try {
+            await transaction.rollback();
+        } catch (rollbackError) {
+            console.error("Rollback failed:", rollbackError);
+        }
+
+        throw error;
+    }
+};
 
 const deleteProject = async(id)=>{
     const result = await sql.query`

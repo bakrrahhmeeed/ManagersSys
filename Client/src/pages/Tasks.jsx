@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { getTasks } from "../services/tasksService";
 import "../styles/Tasks.css";
 
 function Tasks() {
     const [tasks, setTasks] = useState([]);
+    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -726,7 +728,7 @@ function Tasks() {
                                     </th>
 
                                     <th>
-                                        Progress
+                                        Department
                                     </th>
 
                                     <th>
@@ -926,34 +928,15 @@ function Tasks() {
                                                     </td>
 
 
-                                                    {/* PROGRESS */}
+                                                   
 
-                                                    <td>
+{/* DEPARTMENT */}
 
-                                                        <div className="task-progress-cell">
-
-                                                            <span>
-                                                                {
-                                                                    progress
-                                                                }%
-                                                            </span>
-
-                                                            <div className="task-progress-bar">
-
-                                                                <div
-                                                                    className={`task-progress-fill ${getProgressClass(
-                                                                        progress
-                                                                    )}`}
-                                                                    style={{
-                                                                        width: `${progress}%`,
-                                                                    }}
-                                                                />
-
-                                                            </div>
-
-                                                        </div>
-
-                                                    </td>
+<td>
+    <div className="task-department-cell">
+        <span>{task.DepartmentName}</span>
+    </div>
+</td>
 
 
                                                     {/* DUE DATE */}
@@ -993,12 +976,15 @@ function Tasks() {
                                                         <div className="task-actions">
 
                                                             <button
-                                                                type="button"
-                                                                title="View task"
-                                                                className="task-action-btn"
-                                                            >
-                                                                👁
-                                                            </button>
+    type="button"
+    title="View task"
+    className="task-action-btn"
+    onClick={() => {
+        navigate(`/tasks/${task.TaskID}`);
+    }}
+>
+    👁
+</button>
 
                                                             <button
                                                                 type="button"

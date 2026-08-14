@@ -1650,3 +1650,270 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* =========================================================
+   EDIT PROJECT
+========================================================= */
+
+.project-edit-section {
+    width: 100%;
+    padding: 28px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #e5e8ed;
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);
+}
+
+.project-edit-header {
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #edf0f4;
+}
+
+.project-edit-header h1 {
+    margin: 0;
+    color: #172033;
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.project-edit-header p {
+    margin: 7px 0 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.project-edit-form {
+    width: 100%;
+}
+
+.project-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.edit-form-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-form-group.full {
+    grid-column: 1 / -1;
+}
+
+.edit-form-group label {
+    margin-bottom: 7px;
+    color: #172033;
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 750;
+}
+
+.edit-form-group input,
+.edit-form-group select,
+.edit-form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dce2e9;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+    color: #1e293b;
+    font-family: inherit;
+    font-size: 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-form-group input,
+.edit-form-group select {
+    height: 44px;
+    padding: 0 12px;
+}
+
+.edit-form-group textarea {
+    min-height: 120px;
+    padding: 12px;
+    resize: vertical;
+}
+
+.edit-form-group input:focus,
+.edit-form-group select:focus,
+.edit-form-group textarea:focus {
+    border-color: #e31b23;
+    box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.07);
+}
+
+.project-edit-actions {
+    margin-top: 24px;
+    padding-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid #edf0f4;
+}
+
+.edit-cancel-btn,
+.edit-save-btn {
+    min-height: 42px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.edit-cancel-btn {
+    border: 1px solid #dce2e9;
+    background: #ffffff;
+    color: #334155;
+}
+
+.edit-cancel-btn:hover:not(:disabled) {
+    background: #f8fafc;
+}
+
+.edit-save-btn {
+    border: none;
+    background: #e31b23;
+    color: #ffffff;
+    box-shadow: 0 7px 16px rgba(227, 27, 35, 0.17);
+}
+
+.edit-save-btn:hover:not(:disabled) {
+    background: #c9141b;
+}
+
+.edit-cancel-btn:disabled,
+.edit-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 1000px) {
+    .project-edit-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .project-edit-section {
+        padding: 18px;
+    }
+
+    .project-edit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-form-group.full {
+        grid-column: auto;
+    }
+
+    .project-edit-actions {
+        flex-direction: column-reverse;
+    }
+
+    .edit-cancel-btn,
+    .edit-save-btn {
+        width: 100%;
+    }
+}
+
+
+
+/* =========================================================
+   EDIT PROJECT - DEPARTMENTS
+========================================================= */
+
+.project-edit-departments {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.project-edit-department-checkbox {
+    min-height: 54px;
+    padding: 0 14px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dce2e9;
+    border-radius: 8px;
+    background: #ffffff;
+
+    color: #263247;
+    font-size: 12px;
+    font-weight: 650;
+
+    cursor: pointer;
+}
+
+/* Checkbox نفسه */
+.project-edit-department-checkbox input[type="checkbox"] {
+    appearance: auto !important;
+
+    width: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    flex: 0 0 18px;
+
+    cursor: pointer;
+}
+
+/* اسم الـDepartment */
+.project-edit-department-checkbox span {
+    display: block;
+
+    width: auto !important;
+    flex: 1;
+
+    margin: 0;
+
+    color: #263247;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+/* الـDepartment المختار */
+.project-edit-department-checkbox:has(
+    input[type="checkbox"]:checked
+) {
+    border-color: #e31b23;
+    background: #fff5f5;
+}
+
+/* Hover */
+.project-edit-department-checkbox:hover {
+    border-color: #e31b23;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .project-edit-departments {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .project-edit-departments {
+        grid-template-columns: 1fr;
+    }
+}

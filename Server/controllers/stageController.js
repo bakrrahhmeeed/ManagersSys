@@ -46,10 +46,20 @@ const getStage = async (req, res, next) => {
     }
 };
 
+const getStagesByProject = async(req , res , next) =>{
+   try {
+    const result = await stageService.getStagesByProject(req.params.projectId);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
     getAllStages,
     createStage,
     updateStage,
     deleteStage,
-    getStage
+    getStage,
+    getStagesByProject
 };

@@ -1,0 +1,498 @@
+/* =========================================================
+   ADD TASK PAGE
+========================================================= */
+
+.add-task-page {
+    min-height: calc(100vh - 70px);
+    background: #f7f9fc;
+    padding: 28px 32px 60px;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.add-task-topbar {
+    max-width: 1200px;
+    margin: 0 auto 24px;
+}
+
+.add-task-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    border: 0;
+    background: transparent;
+
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+
+    padding: 0;
+    margin-bottom: 20px;
+
+    cursor: pointer;
+}
+
+.add-task-back-btn:hover {
+    color: #ed1c24;
+}
+
+.add-task-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.add-task-icon {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 12px;
+
+    background: #ffe7e8;
+    color: #ed1c24;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 22px;
+}
+
+.add-task-heading h1 {
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 28px;
+    font-weight: 750;
+}
+
+.add-task-heading p {
+    margin: 5px 0 0;
+
+    color: #718096;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   ALERTS
+========================================================= */
+
+.add-task-alert {
+    max-width: 1200px;
+    margin: 0 auto 18px;
+
+    padding: 13px 16px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.add-task-alert.error {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+}
+
+.add-task-alert.success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.add-task-form {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    background: #ffffff;
+
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.add-task-section {
+    padding: 26px 28px;
+
+    border-bottom: 1px solid #edf0f4;
+}
+
+.add-task-section-header {
+    margin-bottom: 22px;
+}
+
+.add-task-section-header h2 {
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.add-task-section-header p {
+    margin: 5px 0 0;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   GRID
+========================================================= */
+
+.add-task-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 20px;
+}
+
+.add-task-field {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.add-task-field.full {
+    grid-column: 1 / -1;
+}
+
+
+/* =========================================================
+   LABELS
+========================================================= */
+
+.add-task-field label {
+    color: #334155;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.add-task-field label span {
+    color: #ed1c24;
+    margin-left: 3px;
+}
+
+
+/* =========================================================
+   INPUTS / SELECTS / TEXTAREA
+========================================================= */
+
+.add-task-field input,
+.add-task-field select,
+.add-task-field textarea {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #27364d;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.add-task-field input,
+.add-task-field select {
+    height: 44px;
+
+    padding: 0 13px;
+}
+
+.add-task-field textarea {
+    min-height: 120px;
+
+    padding: 12px 13px;
+
+    resize: vertical;
+}
+
+.add-task-field input::placeholder,
+.add-task-field textarea::placeholder {
+    color: #a0aec0;
+}
+
+.add-task-field input:focus,
+.add-task-field select:focus,
+.add-task-field textarea:focus {
+    border-color: #ed1c24;
+
+    box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.08);
+}
+
+.add-task-field select:disabled {
+    background: #f8fafc;
+
+    color: #94a3b8;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   HELP TEXT
+========================================================= */
+
+.add-task-help {
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   DEPARTMENT BOX
+========================================================= */
+
+.add-task-department-box {
+    margin-top: 20px;
+
+    padding: 16px 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5eaf0;
+    border-radius: 9px;
+}
+
+.add-task-department-box > div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.add-task-info-label {
+    color: #94a3b8;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.add-task-department-box strong {
+    color: #27364d;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   FORM FOOTER
+========================================================= */
+
+.add-task-form-footer {
+    padding: 20px 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    background: #ffffff;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.add-task-cancel-btn,
+.add-task-submit-btn {
+    height: 42px;
+
+    padding: 0 18px;
+
+    border-radius: 8px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.1s ease;
+}
+
+.add-task-cancel-btn {
+    background: #ffffff;
+
+    border: 1px solid #dce3eb;
+
+    color: #475569;
+}
+
+.add-task-cancel-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.add-task-submit-btn {
+    min-width: 130px;
+
+    background: #ed1c24;
+
+    border: 1px solid #ed1c24;
+
+    color: #ffffff;
+}
+
+.add-task-submit-btn:hover {
+    background: #d71920;
+    border-color: #d71920;
+}
+
+.add-task-submit-btn:active,
+.add-task-cancel-btn:active {
+    transform: translateY(1px);
+}
+
+.add-task-submit-btn:disabled,
+.add-task-cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.add-task-loading {
+    min-height: 400px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #64748b;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .add-task-page {
+        padding: 22px 18px 40px;
+    }
+
+    .add-task-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .add-task-field.full {
+        grid-column: auto;
+    }
+
+    .add-task-department-box {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .add-task-page {
+        padding: 18px 12px 30px;
+    }
+
+    .add-task-heading {
+        align-items: flex-start;
+    }
+
+    .add-task-icon {
+        width: 44px;
+        height: 44px;
+
+        flex-shrink: 0;
+
+        font-size: 18px;
+    }
+
+    .add-task-heading h1 {
+        font-size: 23px;
+    }
+
+    .add-task-heading p {
+        font-size: 11px;
+    }
+
+    .add-task-section {
+        padding: 20px 16px;
+    }
+
+    .add-task-form-footer {
+        padding: 16px;
+
+        flex-direction: column-reverse;
+    }
+
+    .add-task-cancel-btn,
+    .add-task-submit-btn {
+        width: 100%;
+    }
+}

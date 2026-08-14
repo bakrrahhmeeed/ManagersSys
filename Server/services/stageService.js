@@ -334,11 +334,46 @@ const getStage = async (id) => {
     return result.recordset[0];
 };
 
+const getStagesByProject = async (projectId) => {
+
+    const result = await sql.query`
+        SELECT
+            s.StageID,
+            s.ProjectID,
+            s.StageName,
+            s.StageOrder,
+            s.Status,
+            s.ProgressPercent,
+            s.StartDate,
+            s.EndDate,
+            s.ActualEndDate,
+            s.ResponsibleUserID,
+            u.FullName AS ResponsibleUser,
+            s.Notes,
+            s.DepartmentID,
+            d.DepartmentName
+        FROM ProjectStages s
+
+        LEFT JOIN Users u
+            ON s.ResponsibleUserID = u.UserID
+
+        LEFT JOIN Departments d
+            ON s.DepartmentID = d.DepartmentID
+
+        WHERE s.ProjectID = ${projectId}
+
+        ORDER BY s.StageOrder
+    `;
+
+    return result.recordset;
+};
+
 
 module.exports = {
   getAllStages,
   createStage,
   updateStage,
   deleteStage,
-  getStage
+  getStage,
+  getStagesByProject
 };

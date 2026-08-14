@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
     FaArrowLeft,
     FaCalendarAlt,
@@ -19,59 +19,98 @@ import {
 } from "react-icons/fa";
 
 import Header from "../components/Header";
+import { getDepartments } from "../services/departmentservice";
+import { getProjectManagers } from "../services/projectService";
+import { updateProject } from "../services/projectDetailsService";
 import "../styles/ProjectDetails.css";
 
 const ProjectDetails = () => {
     const { projectId } = useParams();
     const navigate = useNavigate();
-
+    const [searchParams, setSearchParams] = useSearchParams();
+    const isEditing = searchParams.get("edit") === "true";
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeSection, setActiveSection] = useState("overview");
 
-    useEffect(() => {
-        const fetchProjectDetails = async () => {
-            try {
-                setLoading(true);
-                setError("");
+    const [editForm, setEditForm] = useState({
+    projectName: "",
+    projectDescription: "",
+    projectType: "",
+    priorityLevel: "",
+    status: "",
+    targetEndDate: "",
+    sponsorId: "",
+    projectManagerId: "",
+    departmentIds: [],
+    isStrategic: false,
+});
 
-                const token = localStorage.getItem("token");
+const [saving, setSaving] = useState(false);
+    const [departments, setDepartments] = useState([]);
+    const [projectManagers, setProjectManagers] = useState([]);
 
-                const response = await fetch(
-                    `http://localhost:3001/api/project/${projectId}/details`,
-                    {
-                        method: "GET",
-                        headers: {
-                            Accept: "application/json",
-                            ...(token
-                                ? { Authorization: `Bearer ${token}` }
-                                : {}),
-                        },
-                    }
-                );
+    const fetchProjectDetails = async () => {
+        try {
+            setLoading(true);
+            setError("");
 
-                const result = await response.json();
+            const token = localStorage.getItem("token");
 
-                if (!response.ok) {
-                    throw new Error(
-                        result.message || "Failed to load project details."
-                    );
+            const response = await fetch(
+                `http://localhost:3001/api/project/${projectId}/details`,
+                {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        ...(token
+                            ? { Authorization: `Bearer ${token}` }
+                            : {}),
+                    },
                 }
+            );
 
-                setData(result);
-            } catch (err) {
-                console.error("Project details error:", err);
-                setError(err.message || "Failed to load project details.");
-            } finally {
-                setLoading(false);
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || "Failed to load project details."
+                );
             }
-        };
 
+            setData(result);
+        } catch (err) {
+            console.error("Project details error:", err);
+            setError(err.message || "Failed to load project details.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         if (projectId) {
             fetchProjectDetails();
         }
     }, [projectId]);
+
+    useEffect(() => {
+        const loadEditOptions = async () => {
+            try {
+                const [departmentsData, managersData] = await Promise.all([
+                    getDepartments(),
+                    getProjectManagers(),
+                ]);
+
+                setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
+                setProjectManagers(Array.isArray(managersData) ? managersData : []);
+            } catch (err) {
+                console.error("Failed to load edit options:", err);
+            }
+        };
+
+        loadEditOptions();
+    }, []);
 
     const project = data?.project;
     const stages = data?.stages || [];
@@ -79,6 +118,47 @@ const ProjectDetails = () => {
     const issues = data?.issues || [];
     const risks = data?.risks || [];
     const objectives = data?.objectives || [];
+
+    useEffect(() => {
+        if (!project) return;
+
+        // The project details API should return the departments linked to
+        // this project in `projectDepartments`. We keep a couple of fallbacks
+        // so the form also works if the API uses a different property name.
+        const linkedDepartments =
+            data?.projectDepartments ||
+            project.projectDepartments ||
+            project.ProjectDepartments ||
+            [];
+
+        const linkedDepartmentIds = Array.isArray(linkedDepartments)
+            ? linkedDepartments
+                  .map((department) =>
+                      Number(
+                          department.DepartmentID ??
+                              department.departmentId ??
+                              department.id ??
+                              department
+                      )
+                  )
+                  .filter(Number.isFinite)
+            : [];
+
+        setEditForm({
+            projectName: project.ProjectName || "",
+            projectDescription: project.ProjectDescription || "",
+            projectType: project.ProjectType || "",
+            priorityLevel: project.PriorityLevel || "",
+            status: project.Status || "",
+            targetEndDate: project.TargetEndDate
+                ? String(project.TargetEndDate).slice(0, 10)
+                : "",
+            sponsorId: project.SponsorID || "",
+            projectManagerId: project.ProjectManagerID || "",
+            departmentIds: linkedDepartmentIds,
+            isStrategic: Boolean(project.IsStrategic),
+        });
+    }, [project, data?.projectDepartments]);
 
     const totalTasks = useMemo(
         () =>
@@ -147,6 +227,79 @@ const ProjectDetails = () => {
 
     const getPriorityClass = (priority) =>
         priority ? priority.toLowerCase().replace(/\s+/g, "-") : "";
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+
+        setEditForm((prev) => ({
+            ...prev,
+            [name]: name === "isStrategic" ? value === "true" : value,
+        }));
+    };
+
+  const handleUpdateProject = async (e) => {
+    e.preventDefault();
+
+    try {
+        setSaving(true);
+        setError("");
+
+        await updateProject(projectId, editForm);
+
+        await fetchProjectDetails();
+
+        setSearchParams({});
+    } catch (err) {
+        console.error("Update project error:", err);
+
+        setError(
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to update project."
+        );
+    } finally {
+        setSaving(false);
+    }
+};
+    const cancelEdit = () => {
+        if (project) {
+            setEditForm({
+                projectName: project.ProjectName || "",
+                projectDescription: project.ProjectDescription || "",
+                projectType: project.ProjectType || "",
+                priorityLevel: project.PriorityLevel || "",
+                status: project.Status || "",
+                targetEndDate: project.TargetEndDate
+                    ? String(project.TargetEndDate).slice(0, 10)
+                    : "",
+                sponsorId: project.SponsorID || "",
+                projectManagerId: project.ProjectManagerID || "",
+                departmentIds: (() => {
+                    const linkedDepartments =
+                        data?.projectDepartments ||
+                        project.projectDepartments ||
+                        project.ProjectDepartments ||
+                        [];
+
+                    if (!Array.isArray(linkedDepartments)) return [];
+
+                    return linkedDepartments
+                        .map((department) =>
+                            Number(
+                                department.DepartmentID ??
+                                    department.departmentId ??
+                                    department.id ??
+                                    department
+                            )
+                        )
+                        .filter(Number.isFinite);
+                })(),
+                isStrategic: Boolean(project.IsStrategic),
+            });
+        }
+
+        setSearchParams({});
+    };
 
     const scrollToSection = (id) => {
         setActiveSection(id);
@@ -558,7 +711,10 @@ const ProjectDetails = () => {
                             </div>
 
                             <div className="project-actions">
-                                <button className="edit-project-btn">
+                                <button
+                                    className="edit-project-btn"
+                                    onClick={() => setSearchParams({ edit: "true" })}
+                                >
                                     <FaEdit />
                                     Edit Project
                                 </button>
@@ -571,6 +727,145 @@ const ProjectDetails = () => {
                             </div>
                         </div>
 
+                        {isEditing ? (
+                            <section className="project-edit-section">
+                                <div className="project-edit-header">
+                                    <div>
+                                        <h1>Edit Project</h1>
+                                        <p>Update the project information stored in the system.</p>
+                                    </div>
+                                </div>
+
+                                <form className="project-edit-form" onSubmit={handleUpdateProject}>
+                                    <div className="project-edit-grid">
+                                        <div className="edit-form-group">
+                                            <label>Project Name</label>
+                                            <input name="projectName" value={editForm.projectName} onChange={handleEditChange} required />
+                                        </div>
+
+                                        <div className="edit-form-group">
+                                            <label>Project Type</label>
+                                            <select name="projectType" value={editForm.projectType} onChange={handleEditChange}>
+                                                <option value="">Select project type</option>
+                                                <option value="Internal">Internal</option>
+                                                <option value="External">External</option>
+                                                <option value="Business">Business</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="edit-form-group">
+                                            <label>Priority</label>
+                                            <select name="priorityLevel" value={editForm.priorityLevel} onChange={handleEditChange}>
+                                                <option value="">Select priority</option>
+                                                <option value="Low">Low</option>
+                                                <option value="Medium">Medium</option>
+                                                <option value="High">High</option>
+                                                <option value="Critical">Critical</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="edit-form-group">
+                                            <label>Status</label>
+                                            <select name="status" value={editForm.status} onChange={handleEditChange}>
+                                                <option value="Planning">Planning</option>
+                                                <option value="Not Started">Not Started</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="On Hold">On Hold</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="edit-form-group">
+                                            <label>Project Manager</label>
+                                            <select name="projectManagerId" value={editForm.projectManagerId} onChange={handleEditChange}>
+                                                <option value="">Unassigned</option>
+                                                {projectManagers.map((manager) => (
+                                                    <option key={manager.UserID} value={manager.UserID}>{manager.FullName}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="edit-form-group full">
+                                            <label>Departments</label>
+
+                                            <div className="project-edit-departments">
+                                                {departments.map((department) => {
+                                                    const departmentId = Number(
+                                                        department.DepartmentID
+                                                    );
+
+                                                    const isChecked =
+                                                        editForm.departmentIds.includes(
+                                                            departmentId
+                                                        );
+
+                                                    return (
+                                                         <label
+
+                    key={departmentId}
+
+                    className="project-edit-department-checkbox"
+
+                >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isChecked}
+                                                                onChange={() => {
+                                                                    setEditForm((prev) => ({
+                                                                        ...prev,
+                                                                        departmentIds: isChecked
+                                                                            ? prev.departmentIds.filter(
+                                                                                  (id) =>
+                                                                                      id !==
+                                                                                      departmentId
+                                                                              )
+                                                                            : [
+                                                                                  ...prev.departmentIds,
+                                                                                  departmentId,
+                                                                              ],
+                                                                    }));
+                                                                }}
+                                                            />
+
+                                                            <span>{department.DepartmentName}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                       
+
+                                        <div className="edit-form-group">
+                                            <label>Target End Date</label>
+                                            <input type="date" name="targetEndDate" value={editForm.targetEndDate} onChange={handleEditChange} />
+                                        </div>
+
+                                        <div className="edit-form-group">
+                                            <label>Strategic Project</label>
+                                            <select name="isStrategic" value={String(editForm.isStrategic)} onChange={handleEditChange}>
+                                                <option value="false">No</option>
+                                                <option value="true">Yes</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="edit-form-group full">
+                                            <label>Description</label>
+                                            <textarea name="projectDescription" value={editForm.projectDescription} onChange={handleEditChange} rows="5" />
+                                        </div>
+                                    </div>
+
+                                    <div className="project-edit-actions">
+                                        <button type="button" className="edit-cancel-btn" onClick={cancelEdit} disabled={saving}>Cancel</button>
+                                        <button type="submit" className="edit-save-btn" disabled={saving}>
+                                            {saving ? "Saving..." : "Save Changes"}
+                                        </button>
+                                    </div>
+                                </form>
+                            </section>
+                        ) : (
+                            <>
                         <section
                             id="overview"
                             className="project-main-card details-section"
@@ -1320,6 +1615,8 @@ const ProjectDetails = () => {
                                 </div>
                             </div>
                         </section>
+                        </>
+                        )}
                     </div>
                 </main>
             </div>

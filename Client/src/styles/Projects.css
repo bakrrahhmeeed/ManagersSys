@@ -1089,3 +1089,24 @@
         padding: 18px;
     }
 }
+
+
+
+
+.project-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.project-title-row h2 {
+    margin: 0;
+}
+
+.project-id {
+    font-size: 12px;
+    font-weight: 700;
+    color: #7b8794;
+    white-space: nowrap;
+}

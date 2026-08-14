@@ -36,14 +36,7 @@ const initialFormData = {
     targetEndDate: "",
     projectManagerId: "",
     departmentIds: [],
-    isStrategic: false,
-
-    // UI fields from the design.
-    // They are not sent to the current create API because the current
-    // backend contract does not expose them.
-    estimatedBudget: "",
-    projectGoals: "",
-    additionalNotes: "",
+    isStrategic: false
 };
 
 const PROJECTS_PER_PAGE = 8;
@@ -240,25 +233,26 @@ const Projects = () => {
         }
     };
 
-    const filteredProjects = useMemo(() => {
-        const result = normalizedProjects.filter((project) => {
-            const name = project.ProjectName || "";
-            const status = project.Status || "";
-            const managerId = String(project.ProjectManagerID ?? "");
+const filteredProjects = useMemo(() => {
+    const result = normalizedProjects.filter((project) => {
+        const name = project.ProjectName || "";
+        const status = project.Status || "";
+        const managerId = String(project.ProjectManagerID ?? "");
+        const projectId = String(project.ProjectID ?? "");
 
-            const matchesSearch = name
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
+        const matchesSearch =
+            name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            projectId.includes(searchTerm.trim());
 
-            const matchesStatus =
-                statusFilter === "All" || status === statusFilter;
+        const matchesStatus =
+            statusFilter === "All" || status === statusFilter;
 
-            const matchesManager =
-                managerFilter === "All" ||
-                managerId === String(managerFilter);
+        const matchesManager =
+            managerFilter === "All" ||
+            managerId === String(managerFilter);
 
-            return matchesSearch && matchesStatus && matchesManager;
-        });
+        return matchesSearch && matchesStatus && matchesManager;
+    });
 
         return [...result].sort((a, b) => {
             if (sortBy === "Progress High") {
@@ -323,23 +317,23 @@ const Projects = () => {
         setCurrentPage(page);
     };
 
-    const handleMenuAction = (action, project) => {
-        setOpenMenu(null);
+const handleMenuAction = (action, project) => {
+    setOpenMenu(null);
 
-        if (action === "update") {
-            alert(`Update "${project.ProjectName}" will be connected next.`);
-        }
+    if (action === "update") {
+        navigate(`/projects/${project.ProjectID}?edit=true`);
+    }
 
-        if (action === "task") {
-            alert(`Add Task to "${project.ProjectName}" will be connected next.`);
-        }
+    if (action === "task") {
+        alert(`Add Task to "${project.ProjectName}" will be connected next.`);
+    }
 
-        if (action === "comment") {
-            alert(
-                `Comments for "${project.ProjectName}" will be connected next.`
-            );
-        }
-    };
+    if (action === "comment") {
+        alert(
+            `Comments for "${project.ProjectName}" will be connected next.`
+        );
+    }
+};
 
     return (
         <DashboardLayout>
@@ -382,15 +376,6 @@ const Projects = () => {
                     ========================== */}
                     {activeTab === "all" && (
                         <section className="projects-content">
-                            {/* <div className="projects-header">
-                                <div>
-                                    <h1>Projects</h1>
-                                    <p>
-                                        Manage and track all projects in your
-                                        organization.
-                                    </p>
-                                </div>
-                            </div> */}
 
                             <div className="projects-filter-bar">
                                 <div className="project-search">
@@ -606,18 +591,17 @@ const Projects = () => {
                                                                         </button>
 
                                                                         <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleMenuAction(
-                                                                                    "task",
-                                                                                    project
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            <FaTasks />
-                                                                            Add
-                                                                            Task
-                                                                        </button>
+    onClick={(e) => {
+        e.stopPropagation();
+
+        navigate(
+            `/tasks/add?projectId=${project.ProjectID}`
+        );
+    }}
+>
+    <FaTasks />
+    Add Task
+</button>
 
                                                                         <button
                                                                             onClick={(e) => {
@@ -642,6 +626,9 @@ const Projects = () => {
                                                                     project.ProjectName
                                                                 }
                                                             </h2>
+                                                            <span className="project-id">
+                                                            ID : {project.ProjectID}
+                                                            </span>     
 
                                                             <p className="project-description">
                                                                 {project.ProjectDescription ||
@@ -1172,3 +1159,4 @@ const Projects = () => {
 };
 
 export default Projects;
+

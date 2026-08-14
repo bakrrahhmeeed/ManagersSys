@@ -1,8 +1,7 @@
 const sql = require("mssql");
 
 const projectdetails = async (id, user) => {
-const Roles = require("../constants/roles")
-
+    const Roles = require("../constants/roles");
 
     if (
         user.RoleName !== Roles.ADMIN &&
@@ -23,6 +22,7 @@ const Roles = require("../constants/roles")
                 throw error;
             }
         }
+
         else if (user.RoleName === Roles.PROJECT_MANAGER) {
 
             const access = await sql.query`
@@ -38,6 +38,7 @@ const Roles = require("../constants/roles")
                 throw error;
             }
         }
+
         else if (user.RoleName === Roles.EMPLOYEE) {
 
             const access = await sql.query`
@@ -61,10 +62,9 @@ const Roles = require("../constants/roles")
         }
     }
 
-
-
     const [
         project,
+        projectDepartments,
         stages,
         tasks,
         updates,
@@ -74,110 +74,134 @@ const Roles = require("../constants/roles")
         keyResults
     ] = await Promise.all([
 
-        sql.query`
-    SELECT
-        p.*,
-        pm.FullName AS ProjectManagerName,
-        cb.FullName AS CreatedByName
-    FROM Projects p
-
-    LEFT JOIN Users pm
-        ON p.ProjectManagerID = pm.UserID
-
-    LEFT JOIN Users cb
-        ON p.CreatedBy = cb.UserID
-
-    WHERE p.ProjectID = ${id}
-`,
-
-        sql.query`
-    SELECT
-        ps.*,
-        u.FullName AS ResponsibleUserName,
-        d.DepartmentName
-    FROM ProjectStages ps
-
-    LEFT JOIN Users u
-        ON ps.ResponsibleUserID = u.UserID
-
-    LEFT JOIN Departments d
-        ON ps.DepartmentID = d.DepartmentID
-
-    WHERE ps.ProjectID = ${id}
-
-    ORDER BY ps.StageOrder
-`,
-
-       sql.query`
-    SELECT
-        pt.*,
-        u.FullName AS AssignedToName,
-        cb.FullName AS CreatedByName
-    FROM ProjectTasks pt
-
-    LEFT JOIN Users u
-        ON pt.AssignedTo = u.UserID
-
-    LEFT JOIN Users cb
-        ON pt.CreatedBy = cb.UserID
-
-    WHERE pt.ProjectID = ${id}
-`,
-
+        // Project
         sql.query`
             SELECT
-            pu.*,
-            u.FullName AS CreatedByName,
-            ps.StageName
+                p.*,
+                pm.FullName AS ProjectManagerName,
+                cb.FullName AS CreatedByName
+            FROM Projects p
+
+            LEFT JOIN Users pm
+                ON p.ProjectManagerID = pm.UserID
+
+            LEFT JOIN Users cb
+                ON p.CreatedBy = cb.UserID
+
+            WHERE p.ProjectID = ${id}
+        `,
+
+        // Project Departments
+        sql.query`
+            SELECT
+                pd.ProjectID,
+                pd.DepartmentID,
+                d.DepartmentName
+            FROM ProjectDepartments pd
+
+            INNER JOIN Departments d
+                ON pd.DepartmentID = d.DepartmentID
+
+            WHERE pd.ProjectID = ${id}
+
+            ORDER BY pd.DepartmentID
+        `,
+
+        // Stages
+        sql.query`
+            SELECT
+                ps.*,
+                u.FullName AS ResponsibleUserName,
+                d.DepartmentName
+            FROM ProjectStages ps
+
+            LEFT JOIN Users u
+                ON ps.ResponsibleUserID = u.UserID
+
+            LEFT JOIN Departments d
+                ON ps.DepartmentID = d.DepartmentID
+
+            WHERE ps.ProjectID = ${id}
+
+            ORDER BY ps.StageOrder
+        `,
+
+        // Tasks
+        sql.query`
+            SELECT
+                pt.*,
+                u.FullName AS AssignedToName,
+                cb.FullName AS CreatedByName
+            FROM ProjectTasks pt
+
+            LEFT JOIN Users u
+                ON pt.AssignedTo = u.UserID
+
+            LEFT JOIN Users cb
+                ON pt.CreatedBy = cb.UserID
+
+            WHERE pt.ProjectID = ${id}
+        `,
+
+        // Updates
+        sql.query`
+            SELECT
+                pu.*,
+                u.FullName AS CreatedByName,
+                ps.StageName
             FROM ProjectUpdates pu
 
             LEFT JOIN Users u
-            ON pu.CreatedBy = u.UserID
+                ON pu.CreatedBy = u.UserID
 
             LEFT JOIN ProjectStages ps
-            ON pu.StageID = ps.StageID
+                ON pu.StageID = ps.StageID
 
             WHERE pu.ProjectID = ${id}
 
             ORDER BY pu.CreatedAt DESC
-`,
+        `,
 
+        // Issues
         sql.query`
-    SELECT
-        i.*,
-        u.FullName AS AssignedToName
-    FROM Issues i
+            SELECT
+                i.*,
+                u.FullName AS AssignedToName
+            FROM Issues i
 
-    LEFT JOIN Users u
-        ON i.AssignedTo = u.UserID
+            LEFT JOIN Users u
+                ON i.AssignedTo = u.UserID
 
-    WHERE i.ProjectID = ${id}
-`,
+            WHERE i.ProjectID = ${id}
+        `,
 
+        // Risks
         sql.query`
-    SELECT
-        r.*,
-        u.FullName AS OwnerName
-    FROM Risks r
+            SELECT
+                r.*,
+                u.FullName AS OwnerName
+            FROM Risks r
 
-    LEFT JOIN Users u
-        ON r.OwnerID = u.UserID
+            LEFT JOIN Users u
+                ON r.OwnerID = u.UserID
 
-    WHERE r.ProjectID = ${id}
-`,
+            WHERE r.ProjectID = ${id}
+        `,
 
+        // Objectives
         sql.query`
-    SELECT
-        o.*,
-        u.FullName AS OwnerName
-    FROM Objectives o
+            SELECT
+                o.*,
+                u.FullName AS OwnerName
+            FROM Objectives o
 
-    LEFT JOIN Users u
-        ON o.OwnerID = u.UserID
+            LEFT JOIN Users u
+                ON o.OwnerID = u.UserID
 
-    WHERE o.ProjectID = ${id}
-`,
+            WHERE o.ProjectID = ${id}
+        `,
 
+        // Key Results
         sql.query`
     SELECT
         kr.*,
@@ -215,7 +239,13 @@ const Roles = require("../constants/roles")
     });
 
     return {
-        project: project.recordset[0],
+        project: {
+            ...project.recordset[0],
+
+            // Departments connected to this project
+            projectDepartments: projectDepartments.recordset
+        },
+
         stages: stages.recordset,
         updates: updates.recordset,
         issues: issues.recordset,
