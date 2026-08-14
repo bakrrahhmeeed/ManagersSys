@@ -1629,7 +1629,7 @@
 }
 
 /* =========================================================
-   RECENT PROJECTS - CARD GRID
+   RECENT PROJECTS - TABLE
    ========================================================= */
 
 .recent-projects-panel {
@@ -1664,6 +1664,10 @@
   align-items: center;
   gap: 10px;
 }
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
 
 .project-search-box {
   width: 255px;
@@ -1721,92 +1725,117 @@
   line-height: 1;
 }
 
-.projects-card-grid {
+/* =========================================================
+   TABLE WRAPPER
+   ========================================================= */
+
+.projects-table-wrapper {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.dashboard-project-card {
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  box-sizing: border-box;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
   border: 1px solid #e5e7eb;
-  border-radius: 13px;
-  border-bottom: 3px solid #e31b23;
+  border-radius: 12px;
   background: #ffffff;
-  color: #172033;
-  cursor: pointer;
-  font-family: inherit;
-  appearance: none;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
-.dashboard-project-card:hover {
-  transform: translateY(-2px);
-  border-color: #dbe1e8;
-  box-shadow: 0 9px 22px rgba(15, 23, 42, 0.08);
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.recent-projects-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+  table-layout: auto;
 }
 
-.dashboard-project-card:focus-visible {
-  outline: 3px solid rgba(227, 27, 35, 0.18);
-  outline-offset: 2px;
+/* =========================================================
+   TABLE HEADER
+   ========================================================= */
+
+.recent-projects-table thead {
+  background: #f8fafc;
 }
 
-.dashboard-project-card-top {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  min-width: 0;
-}
-
-.dashboard-project-icon {
-  width: 39px;
-  height: 39px;
-  flex: 0 0 39px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: #f3e8ff;
-  font-size: 18px;
-}
-
-.dashboard-project-title {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding-top: 1px;
-}
-
-.dashboard-project-title strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.recent-projects-table th {
+  padding: 14px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 800;
+  text-align: left;
   white-space: nowrap;
-  color: #172033;
-  font-size: 12px;
+}
+
+/* =========================================================
+   TABLE ROW
+   ========================================================= */
+
+.recent-projects-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.recent-projects-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.recent-projects-table td {
+  padding: 15px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+  font-size: 11px;
   line-height: 16px;
+  white-space: nowrap;
+}
+
+.recent-projects-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Make the whole row clickable */
+
+.recent-project-row {
+  cursor: pointer;
+}
+
+/* =========================================================
+   PROJECT ID
+   ========================================================= */
+
+.recent-projects-table td:first-child strong {
+  color: #64748b;
+  font-size: 10px;
   font-weight: 800;
 }
 
-.dashboard-project-title span {
-  margin-top: 2px;
-  color: #94a3b8;
-  font-size: 9px;
-  line-height: 12px;
+/* =========================================================
+   PROJECT NAME
+   ========================================================= */
+
+.recent-projects-table td:nth-child(2) {
+  min-width: 160px;
 }
 
+.recent-projects-table td:nth-child(2) strong {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #172033;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
 .dashboard-project-status {
-  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
   padding: 5px 8px;
   border-radius: 999px;
   font-size: 8px;
@@ -1835,179 +1864,66 @@
   color: #d97706;
 }
 
-.dashboard-project-card-body {
-  flex: 1;
-  min-height: 0;
-  margin-top: 13px;
-  display: grid;
-  grid-template-columns: 82px minmax(0, 1fr);
-  gap: 12px;
-  align-items: center;
+.dashboard-project-status.status-overdue {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
-.dashboard-project-progress {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.dashboard-project-status.status-blocked {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
-.dashboard-project-progress-circle {
-  --progress: 0deg;
-  --progress-color: #ef4444;
-  width: 76px;
-  height: 76px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: conic-gradient(
-    var(--progress-color) var(--progress),
-    #e5e7eb var(--progress)
-  );
-}
+/* =========================================================
+   NUMBER CELLS
+   ========================================================= */
 
-.dashboard-project-progress-circle::before {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  background: #ffffff;
-}
-
-.dashboard-project-progress-circle strong {
-  position: relative;
-  z-index: 1;
-  color: #172033;
-  font-size: 16px;
-  line-height: 1;
-  font-weight: 800;
-}
-
-.dashboard-project-meta {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.dashboard-project-meta > div {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-project-meta span {
-  color: #94a3b8;
-  font-size: 8px;
-  line-height: 10px;
-}
-
-.dashboard-project-meta strong {
-  margin-top: 2px;
+.recent-projects-table td:nth-child(4),
+.recent-projects-table td:nth-child(5),
+.recent-projects-table td:nth-child(6),
+.recent-projects-table td:nth-child(7),
+.recent-projects-table td:nth-child(8),
+.recent-projects-table td:nth-child(9) {
+  text-align: center;
+  font-weight: 700;
   color: #334155;
-  font-size: 9px;
-  line-height: 12px;
-  font-weight: 750;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.dashboard-project-priority {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center;
-  gap: 5px;
-}
+/* =========================================================
+   PROGRESS
+   ========================================================= */
 
-.dashboard-project-priority i {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
-  border-radius: 50%;
-}
-
-.dashboard-project-priority .priority-critical { background: #ef4444; }
-.dashboard-project-priority .priority-high { background: #f97316; }
-.dashboard-project-priority .priority-medium { background: #f59e0b; }
-.dashboard-project-priority .priority-low { background: #22c55e; }
-.dashboard-project-priority .priority-default { background: #94a3b8; }
-
-.strategic-yes {
-  color: #16a34a !important;
-}
-
-.strategic-no {
-  color: #475569 !important;
-}
-
-.dashboard-project-card-footer {
-  min-height: 42px;
-  margin-top: 10px;
-  padding-top: 10px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  border-top: 1px solid #f1f5f9;
-}
-
-.dashboard-project-manager {
-  min-width: 0;
+.project-progress-cell {
+  min-width: 120px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.dashboard-project-avatar {
-  width: 29px;
-  height: 29px;
-  flex: 0 0 29px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #f1f5f9;
-  color: #64748b;
+.project-progress-bar {
+  width: 75px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.project-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #22c55e;
+  transition: width 0.25s ease;
+}
+
+.project-progress-cell strong {
+  color: #334155;
   font-size: 9px;
   font-weight: 800;
 }
 
-.dashboard-project-manager > div:last-child {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-project-manager span {
-  color: #94a3b8;
-  font-size: 8px;
-  line-height: 10px;
-}
-
-.dashboard-project-manager strong {
-  max-width: 120px;
-  margin-top: 2px;
-  color: #334155;
-  font-size: 9px;
-  line-height: 12px;
-  font-weight: 750;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dashboard-project-arrow {
-  color: #94a3b8;
-  font-size: 17px;
-  line-height: 1;
-  transition: transform 0.16s ease, color 0.16s ease;
-}
-
-.dashboard-project-card:hover .dashboard-project-arrow {
-  color: #e31b23;
-  transform: translateX(2px);
-}
+/* =========================================================
+   FOOTER
+   ========================================================= */
 
 .projects-cards-footer {
   flex: 0 0 32px;
@@ -2039,6 +1955,10 @@
   background: #f8fafc;
 }
 
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
 .projects-cards-empty {
   flex: 1;
   min-height: 180px;
@@ -2059,13 +1979,22 @@
   font-size: 10px;
 }
 
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
 @media (max-width: 1250px) {
-  .projects-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .recent-projects-panel {
+    grid-column: 1 / 4;
+  }
+
+  .projects-table-wrapper {
+    overflow-x: auto;
   }
 }
 
 @media (max-width: 700px) {
+
   .recent-projects-header {
     height: auto;
     min-height: 0;
@@ -2083,8 +2012,11 @@
     width: auto;
   }
 
-  .projects-card-grid {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
+  .projects-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .recent-projects-table {
+    min-width: 900px;
   }
 }

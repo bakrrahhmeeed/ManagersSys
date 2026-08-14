@@ -827,196 +827,305 @@ function Dashboard() {
 
           <section className="dashboard-panel recent-projects-panel">
 
-            <div className="panel-header recent-projects-header">
+  <div className="panel-header recent-projects-header">
 
-              <div>
-                <h2>Recent Projects</h2>
-                <span className="recent-projects-subtitle">
-                  Latest projects in the system
-                </span>
-              </div>
+    <div>
+      <h2>Recent Projects</h2>
 
-              <div className="recent-projects-actions">
-                <div className="project-search-box">
-                  <span className="project-search-icon">⌕</span>
-                  <input
-                    type="text"
-                    value={projectSearch}
-                    onChange={(e) => setProjectSearch(e.target.value)}
-                    placeholder="Search by Project ID..."
-                    inputMode="numeric"
-                  />
-                  {projectSearch && (
-                    <button
-                      type="button"
-                      className="project-search-clear"
-                      onClick={() => setProjectSearch("")}
-                      aria-label="Clear project search"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
+      <span className="recent-projects-subtitle">
+        Latest projects in the system
+      </span>
+    </div>
 
-                <button
-                  className="view-all-btn"
-                  onClick={() => navigate("/projects")}
+    <div className="recent-projects-actions">
+
+      <div className="project-search-box">
+
+        <span className="project-search-icon">
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          value={projectSearch}
+          onChange={(e) =>
+            setProjectSearch(e.target.value)
+          }
+          placeholder="Search by Project ID..."
+          inputMode="numeric"
+        />
+
+        {projectSearch && (
+          <button
+            type="button"
+            className="project-search-clear"
+            onClick={() => setProjectSearch("")}
+            aria-label="Clear project search"
+          >
+            ×
+          </button>
+        )}
+
+      </div>
+
+      <button
+        type="button"
+        className="view-all-btn"
+        onClick={() => navigate("/projects")}
+      >
+        View all
+      </button>
+
+    </div>
+
+  </div>
+
+
+  {filteredRecentProjects.length === 0 ? (
+
+    <div className="projects-cards-empty">
+
+      <strong>
+        No project found
+      </strong>
+
+      <span>
+        {projectSearch
+          ? "Try another Project ID."
+          : "No projects available."}
+      </span>
+
+    </div>
+
+  ) : (
+
+    <div className="projects-table-wrapper">
+
+      <table className="recent-projects-table">
+
+        <thead>
+
+          <tr>
+
+            <th>Project ID</th>
+
+            <th>Project Name</th>
+
+            <th>Status</th>
+
+            <th>Total Tasks</th>
+
+            <th>Completed Tasks</th>
+
+            <th>Total Issues</th>
+
+            <th>Resolved Issues</th>
+
+            <th>Total Risks</th>
+
+            <th>Closed Risks</th>
+
+            <th>Overall Progress</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          {filteredRecentProjects.map(
+            (project) => {
+
+              const projectId =
+                Number(project.projectId);
+
+              const progressValue =
+                Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    Number(
+                      project.overallProgress || 0
+                    )
+                  )
+                );
+
+              const statusClass =
+                getStatusClass(
+                  project.status
+                ) || "status-planning";
+
+
+              return (
+
+                <tr
+                  key={projectId}
+                  onClick={() =>
+                    navigate(
+                      `/projects/${projectId}`
+                    )
+                  }
+                  className="recent-project-row"
                 >
-                  View all
-                </button>
-              </div>
 
-            </div>
+                  {/* PROJECT ID */}
 
-            {filteredRecentProjects.length === 0 ? (
-              <div className="projects-cards-empty">
-                <strong>No project found</strong>
-                <span>Try another Project ID.</span>
-              </div>
-            ) : (
-              <div className="projects-card-grid">
-                {filteredRecentProjects.map((project) => {
-                  const projectId = Number(project.projectId);
-                  const progressValue = Math.min(
-                    100,
-                    Math.max(0, Number(project.overallProgress || 0))
-                  );
+                  <td>
+                    <strong>
+                      #{projectId}
+                    </strong>
+                  </td>
 
-                  const progressColor =
-                    progressValue >= 70
-                      ? "#22c55e"
-                      : progressValue >= 40
-                        ? "#f59e0b"
-                        : "#ef4444";
 
-                  const statusClass =
-                    getStatusClass(project.status) ||
-                    "status-planning";
+                  {/* PROJECT NAME */}
 
-                  const priority = project.priority || "-";
-                  const priorityClass = getPriorityClass(priority);
-
-                  const manager = project.manager || "-";
-                  const managerInitials = manager
-                    .split(" ")
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((part) => part.charAt(0).toUpperCase())
-                    .join("") || "?";
-
-                  return (
-                    <button
-                      type="button"
-                      className="dashboard-project-card"
-                      key={projectId}
-                      style={{ borderBottomColor: progressColor }}
-                      onClick={() =>
-                        navigate(`/projects/${projectId}`)
-                      }
+                  <td>
+                    <strong
+                      title={project.projectName}
                     >
-                      <div className="dashboard-project-card-top">
-                        <div className="dashboard-project-icon">
-                          {project.projectType === "Business" ? "👥" : "📄"}
-                        </div>
+                      {project.projectName || "-"}
+                    </strong>
+                  </td>
 
-                        <div className="dashboard-project-title">
-                          <strong title={project.projectName}>
-                            {project.projectName}
-                          </strong>
-                          <span>#{projectId}</span>
-                        </div>
 
-                        <span
-                          className={`dashboard-project-status ${statusClass}`}
-                        >
-                          {project.status || "Planning"}
-                        </span>
+                  {/* STATUS */}
+
+                  <td>
+
+                    <span
+                      className={`dashboard-project-status ${statusClass}`}
+                    >
+                      {project.status || "Planning"}
+                    </span>
+
+                  </td>
+
+
+                  {/* TOTAL TASKS */}
+
+                  <td>
+                    {Number(
+                      project.totalTasks || 0
+                    )}
+                  </td>
+
+
+                  {/* COMPLETED TASKS */}
+
+                  <td>
+                    {Number(
+                      project.completedTasks || 0
+                    )}
+                  </td>
+
+
+                  {/* TOTAL ISSUES */}
+
+                  <td>
+                    {Number(
+                      project.totalIssues || 0
+                    )}
+                  </td>
+
+
+                  {/* RESOLVED ISSUES */}
+
+                  <td>
+                    {Number(
+                      project.resolvedIssues || 0
+                    )}
+                  </td>
+
+
+                  {/* TOTAL RISKS */}
+
+                  <td>
+                    {Number(
+                      project.totalRisks || 0
+                    )}
+                  </td>
+
+
+                  {/* CLOSED RISKS */}
+
+                  <td>
+                    {Number(
+                      project.closedRisks || 0
+                    )}
+                  </td>
+
+
+                  {/* OVERALL PROGRESS */}
+
+                  <td>
+
+                    <div className="project-progress-cell">
+
+                      <div className="project-progress-bar">
+
+                        <div
+                          className="project-progress-fill"
+                          style={{
+                            width: `${progressValue}%`,
+                          }}
+                        />
+
                       </div>
 
-                      <div className="dashboard-project-card-body">
-                        <div className="dashboard-project-progress">
-                          <div
-                            className="dashboard-project-progress-circle"
-                            style={{
-                              "--progress": `${progressValue * 3.6}deg`,
-                              "--progress-color": progressColor,
-                            }}
-                          >
-                            <strong>{progressValue.toFixed(0)}%</strong>
-                          </div>
-                        </div>
+                      <strong>
+                        {progressValue.toFixed(0)}%
+                      </strong>
 
-                        <div className="dashboard-project-meta">
-                          <div>
-                            <span>Start Date</span>
-                            <strong>{formatDate(project.startDate)}</strong>
-                          </div>
+                    </div>
 
-                          <div>
-                            <span>Target End Date</span>
-                            <strong>{formatDate(project.dueDate)}</strong>
-                          </div>
+                  </td>
 
-                          <div>
-                            <span>Priority</span>
-                            <strong className="dashboard-project-priority">
-                              <i className={priorityClass}></i>
-                              {priority}
-                            </strong>
-                          </div>
+                </tr>
 
-                          <div>
-                            <span>Strategic Project</span>
-                            <strong
-                              className={
-                                project.isStrategic
-                                  ? "strategic-yes"
-                                  : "strategic-no"
-                              }
-                            >
-                              {project.isStrategic ? "Yes" : "No"}
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
+              );
 
-                      <div className="dashboard-project-card-footer">
-                        <div className="dashboard-project-manager">
-                          <div className="dashboard-project-avatar">
-                            {managerInitials}
-                          </div>
-                          <div>
-                            <span>Project Manager</span>
-                            <strong title={manager}>{manager}</strong>
-                          </div>
-                        </div>
+            }
+          )}
 
-                        <span className="dashboard-project-arrow">→</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+        </tbody>
 
-            <div className="projects-cards-footer">
-              <span>
-                {projectSearch
-                  ? `Showing ${filteredRecentProjects.length} matching project${filteredRecentProjects.length === 1 ? "" : "s"}`
-                  : `Showing ${filteredRecentProjects.length} recent projects`}
-              </span>
+      </table>
 
-              <button
-                type="button"
-                onClick={() => navigate("/projects")}
-              >
-                View all projects →
-              </button>
-            </div>
+    </div>
 
-          </section>
+  )}
 
 
+  <div className="projects-cards-footer">
+
+    <span>
+
+      {projectSearch
+
+        ? `Showing ${filteredRecentProjects.length} matching project${
+            filteredRecentProjects.length === 1
+              ? ""
+              : "s"
+          }`
+
+        : `Showing ${filteredRecentProjects.length} recent projects`}
+
+    </span>
+
+
+    <button
+      type="button"
+      onClick={() =>
+        navigate("/projects")
+      }
+    >
+      View all projects →
+    </button>
+
+  </div>
+
+</section>
           {/* ===================================================
               TASKS BY PRIORITY
           =================================================== */}

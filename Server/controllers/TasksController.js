@@ -20,7 +20,7 @@ const createTask = async (req, res, next) => {
 
 const updateTask = async (req, res, next) => {
   try {
-    const result = await TasksService.updateTask(req.params.taskid, req,body);
+    const result = await TasksService.updateTask(req.params.taskId, req.body);
     res.status(200).json(result);
   } catch (error) {
     next(error);

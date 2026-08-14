@@ -12,15 +12,26 @@ const Roles = require("../constants/roles");
 
     if(RoleName === Roles.ADMIN  || RoleName === Roles.PMO_MANAGER){
             const result = await sql.query`
-        SELECT
-        UserID,
-        FullName,
-        UserName,
-        Email,
-        IsActive,
-        DepartmentID,
-        BranchID
-        FROM dbo.Users;
+SELECT
+    u.UserID,
+    u.FullName,
+    u.UserName,
+    u.Email,
+    u.IsActive,
+
+    u.DepartmentID,
+    d.DepartmentName,
+
+    u.BranchID,
+    b.BranchName
+
+FROM dbo.Users u
+
+LEFT JOIN dbo.Departments d
+    ON u.DepartmentID = d.DepartmentID
+
+LEFT JOIN dbo.Branches b
+    ON u.BranchID = b.BranchID;
       `;
   
       const users = result.recordset;

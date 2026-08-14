@@ -758,23 +758,20 @@ const getProgress = async (user) => {
         const totalRisks = Number(project.TotalRisks);
         const closedRisks = Number(project.ClosedRisks);
 
-        // Tasks Progress
         const taskProgress =
             totalTasks === 0
-                ? 100
-                : (completedTasks / totalTasks) * 100;
+            ? 0
+            : (completedTasks / totalTasks) * 100;
 
-        // Issues Progress
         const issueProgress =
             totalIssues === 0
-                ? 100
-                : (resolvedIssues / totalIssues) * 100;
+            ? 0
+            : (resolvedIssues / totalIssues) * 100;
 
-        // Risks Progress
         const riskProgress =
             totalRisks === 0
-                ? 100
-                : (closedRisks / totalRisks) * 100;
+            ? 0
+            : (closedRisks / totalRisks) * 100;
 
         // Overall Progress
         const overallProgress =
