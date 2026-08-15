@@ -866,34 +866,21 @@ function Tasks() {
                                                         </span>
                                                     </td>
 
+{/* ASSIGNEE */}
 
-                                                    {/* ASSIGNEE */}
+<td>
+    <div className="task-assignee">
 
-                                                    <td>
+        <div className="task-avatar">
+            {getInitials(task.AssignedToName)}
+        </div>
 
-                                                        <div className="task-assignee">
+        <span title={task.AssignedToName}>
+            {task.AssignedToName || "-"}
+        </span>
 
-                                                            <div className="task-avatar">
-                                                                {
-                                                                    getInitials(
-                                                                        assignee
-                                                                    )
-                                                                }
-                                                            </div>
-
-                                                            <span
-                                                                title={
-                                                                    assignee
-                                                                }
-                                                            >
-                                                                {
-                                                                    assignee
-                                                                }
-                                                            </span>
-
-                                                        </div>
-
-                                                    </td>
+    </div>
+</td>
 
 
                                                     {/* PRIORITY */}

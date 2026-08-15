@@ -2,7 +2,7 @@ const TasksService = require("../services/TasksService");
 
 const getAllTasks = async (req, res, next) => {
   try {
-    const result = await TasksService.getAllTasks();
+    const result = await TasksService.getAllTasks(req.user);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -11,7 +11,7 @@ const getAllTasks = async (req, res, next) => {
 
 const createTask = async (req, res, next) => {
   try {
-    const result = await TasksService.createTask(req.body ,req.user.userId);
+    const result = await TasksService.createTask(req.body ,req.user);
     res.status(201).json(result);
   } catch (error) {
     next(error);
@@ -20,7 +20,7 @@ const createTask = async (req, res, next) => {
 
 const updateTask = async (req, res, next) => {
   try {
-    const result = await TasksService.updateTask(req.params.taskId, req.body);
+    const result = await TasksService.updateTask(req.params.taskId, req.body , req.user);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -39,7 +39,7 @@ const deleteTask = async (req, res, next) => {
 const getTask = async (req, res, next) =>  {
     try {
         const taskId = req.params.taskId;
-        const result = await TasksService.getTask(taskId);
+        const result = await TasksService.getTask(taskId , req.user);
         res.status(200).json(result);
     } catch (error) {
         next(error);

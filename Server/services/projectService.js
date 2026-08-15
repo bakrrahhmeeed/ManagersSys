@@ -36,6 +36,20 @@ const getprojects = async(user) =>{
         `
         return result.recordset;
     }
+    if (user.RoleName === Roles.EMPLOYEE) {
+
+    const result = await sql.query`
+        SELECT DISTINCT p.*
+        FROM Projects p
+
+        INNER JOIN ProjectTasks t
+            ON p.ProjectID = t.ProjectID
+
+        WHERE t.AssignedToUserID = ${user.UserID}
+    `;
+
+    return result.recordset;
+}
 }
 
 const getprojectsById = async (id, user) => {

@@ -1,49 +1,209 @@
 const sql = require('mssql');
+const Roles = require("../constants/roles")
 
 
-const getAllTasks = async () => {
-    const result = await sql.query`
-SELECT
-    t.TaskID,
-    t.ProjectID,
-    t.StageID,
-    t.TaskTitle,
-    t.TaskDescription,
-    t.AssignedTo,
-    u.FullName AS AssignedTo,
-    t.PriorityLevel AS PriorityLevel,
-    t.Status,
-    t.ProgressPercent,
-    t.DueDate,
-    t.CompletedDate,
-    t.Blocker,
-    t.CreatedBy,
-    t.CreatedAt,
-    s.StageName,
-    p.ProjectName,
-    t.DepartmentID,
-    d.DepartmentName
-FROM ProjectTasks t
+const getAllTasks = async (user) => {
 
-LEFT JOIN Users u
-    ON t.AssignedTo = u.UserID
 
-LEFT JOIN ProjectStages s
-    ON t.StageID = s.StageID
 
-LEFT JOIN Projects p
-    ON t.ProjectID = p.ProjectID
+    if (user.RoleName === Roles.ADMIN) {
 
-LEFT JOIN Departments d
-    ON t.DepartmentID = d.DepartmentID
+        const result = await sql.query`
+            SELECT
+                t.TaskID,
+                t.ProjectID,
+                t.StageID,
+                t.TaskTitle,
+                t.TaskDescription,
+                t.AssignedTo,
+                u.FullName AS AssignedToName,
+                t.PriorityLevel,
+                t.Status,
+                t.ProgressPercent,
+                t.DueDate,
+                t.CompletedDate,
+                t.Blocker,
+                t.CreatedBy,
+                t.CreatedAt,
+                s.StageName,
+                p.ProjectName,
+                t.DepartmentID,
+                d.DepartmentName
 
-ORDER BY t.TaskID DESC
+            FROM ProjectTasks t
 
-    `;
-    return result.recordset;
+            LEFT JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            LEFT JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            LEFT JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            ORDER BY t.TaskID DESC
+        `;
+
+        return result.recordset;
+    }
+
+
+
+    if (user.RoleName === Roles.PROJECT_MANAGER) {
+
+        const result = await sql.query`
+            SELECT
+                t.TaskID,
+                t.ProjectID,
+                t.StageID,
+                t.TaskTitle,
+                t.TaskDescription,
+                t.AssignedTo,
+                u.FullName AS AssignedToName,
+                t.PriorityLevel,
+                t.Status,
+                t.ProgressPercent,
+                t.DueDate,
+                t.CompletedDate,
+                t.Blocker,
+                t.CreatedBy,
+                t.CreatedAt,
+                s.StageName,
+                p.ProjectName,
+                t.DepartmentID,
+                d.DepartmentName
+
+            FROM ProjectTasks t
+
+            LEFT JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            LEFT JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            LEFT JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            WHERE p.ProjectManagerID = ${user.UserID}
+
+            ORDER BY t.TaskID DESC
+        `;
+
+        return result.recordset;
+    }
+
+
+  
+
+    if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
+
+        const result = await sql.query`
+            SELECT
+                t.TaskID,
+                t.ProjectID,
+                t.StageID,
+                t.TaskTitle,
+                t.TaskDescription,
+                t.AssignedTo,
+                u.FullName AS AssignedToName,
+                t.PriorityLevel,
+                t.Status,
+                t.ProgressPercent,
+                t.DueDate,
+                t.CompletedDate,
+                t.Blocker,
+                t.CreatedBy,
+                t.CreatedAt,
+                s.StageName,
+                p.ProjectName,
+                t.DepartmentID,
+                d.DepartmentName
+
+            FROM ProjectTasks t
+
+            LEFT JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            LEFT JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            LEFT JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            WHERE t.DepartmentID = ${user.DepartmentID}
+
+            ORDER BY t.TaskID DESC
+        `;
+
+        return result.recordset;
+    }
+
+
+
+    if (user.RoleName === Roles.EMPLOYEE) {
+
+        const result = await sql.query`
+            SELECT
+                t.TaskID,
+                t.ProjectID,
+                t.StageID,
+                t.TaskTitle,
+                t.TaskDescription,
+                t.AssignedTo,
+                u.FullName AS AssignedToName,
+                t.PriorityLevel,
+                t.Status,
+                t.ProgressPercent,
+                t.DueDate,
+                t.CompletedDate,
+                t.Blocker,
+                t.CreatedBy,
+                t.CreatedAt,
+                s.StageName,
+                p.ProjectName,
+                t.DepartmentID,
+                d.DepartmentName
+
+            FROM ProjectTasks t
+
+            LEFT JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            LEFT JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            LEFT JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            WHERE t.AssignedTo = ${user.UserID}
+
+            ORDER BY t.TaskID DESC
+        `;
+
+        return result.recordset;
+    }
+
+
+
+
+    const error = new Error("Access denied.");
+    error.statusCode = 403;
+    throw error;
 };
 
-const createTask = async (data, userID) => {
+const createTask = async (data, user) => {
 
     const {
         projectId,
@@ -55,7 +215,7 @@ const createTask = async (data, userID) => {
         dueDate
     } = data;
 
-    // Required fields
+
     if (
         !projectId ||
         !StageID ||
@@ -68,9 +228,13 @@ const createTask = async (data, userID) => {
         throw new Error("Missing required fields");
     }
 
-    // 1. Check Project exists
+
+
+
     const project = await sql.query`
-        SELECT ProjectID
+        SELECT
+            ProjectID,
+            ProjectManagerID
         FROM Projects
         WHERE ProjectID = ${projectId}
     `;
@@ -81,7 +245,26 @@ const createTask = async (data, userID) => {
         throw error;
     }
 
-    // 2. Get Stage + Department + Status
+    const projectData = project.recordset[0];
+
+
+
+    if (user.RoleName === Roles.PROJECT_MANAGER) {
+
+        if (projectData.ProjectManagerID !== user.UserID) {
+
+            const error = new Error(
+                "You can only create tasks in projects you manage."
+            );
+
+            error.statusCode = 403;
+            throw error;
+        }
+    }
+
+
+
+
     const stage = await sql.query`
         SELECT
             StageID,
@@ -97,58 +280,93 @@ const createTask = async (data, userID) => {
         const error = new Error(
             "Stage not found for the given project."
         );
+
         error.statusCode = 404;
         throw error;
     }
 
     const stageData = stage.recordset[0];
 
-    // 3. Department comes from the selected Stage
     const departmentId = stageData.DepartmentID;
+
+
+
 
     if (!departmentId) {
         const error = new Error(
             "Cannot create a task because the selected stage has no department."
         );
+
         error.statusCode = 400;
         throw error;
     }
 
-    // 4. Cannot create Task in completed Stage
+
+
+
+    if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
+
+        if (departmentId !== user.DepartmentID) {
+
+            const error = new Error(
+                "You can only create tasks for your department."
+            );
+
+            error.statusCode = 403;
+            throw error;
+        }
+    }
+
+
+
+
     if (stageData.Status === "Completed") {
+
         const error = new Error(
             "Cannot create a task in a completed stage."
         );
+
         error.statusCode = 400;
         throw error;
     }
 
-    // 5. Check Assigned User exists and is active
-    const user = await sql.query`
-        SELECT UserID
+
+
+    const assignedUser = await sql.query`
+        SELECT
+            UserID
         FROM Users
         WHERE UserID = ${AssignedToUserID}
+        AND DepartmentID = ${departmentId}
         AND IsActive = 1
     `;
 
-    if (user.recordset.length === 0) {
-        const error = new Error(
-            "Assigned user not found."
-        );
-        error.statusCode = 404;
-        throw error;
-    }
+    if (assignedUser.recordset.length === 0) {
 
-    // 6. Due date cannot be in the past
-    if (new Date(dueDate) < new Date()) {
         const error = new Error(
-            "Due date cannot be in the past."
+            "Assigned user must belong to the task department."
         );
+
         error.statusCode = 400;
         throw error;
     }
 
-    // 7. Create Task
+
+
+
+    if (new Date(dueDate) < new Date()) {
+
+        const error = new Error(
+            "Due date cannot be in the past."
+        );
+
+        error.statusCode = 400;
+        throw error;
+    }
+
+
+  
+
     const result = await sql.query`
         INSERT INTO ProjectTasks
         (
@@ -196,11 +414,14 @@ const createTask = async (data, userID) => {
             0,
             ${dueDate},
             NULL,
-            ${userID},
+            ${user.UserID},
             GETDATE(),
             NULL
         )
     `;
+
+
+
 
     return {
         message: "Task created successfully",
@@ -208,7 +429,8 @@ const createTask = async (data, userID) => {
     };
 };
 
-const updateTask = async (taskId, data) => {
+const updateTask = async (taskId, data, user) => {
+
     const {
         TaskTitle,
         TaskDescription,
@@ -220,9 +442,8 @@ const updateTask = async (taskId, data) => {
         Blocker
     } = data;
 
-    // =========================================
-    // Get current task
-    // =========================================
+
+ 
 
     const existingTask = await sql.query`
         SELECT *
@@ -231,50 +452,114 @@ const updateTask = async (taskId, data) => {
     `;
 
     if (existingTask.recordset.length === 0) {
+
         const error = new Error("Task not found.");
         error.statusCode = 404;
         throw error;
+
     }
 
     const currentTask = existingTask.recordset[0];
 
     const departmentId = currentTask.DepartmentID;
 
-    // =========================================
-    // Final values
-    // =========================================
+
+
+    if (user.RoleName === Roles.PROJECT_MANAGER) {
+
+        const project = await sql.query`
+            SELECT ProjectID
+            FROM Projects
+            WHERE ProjectID = ${currentTask.ProjectID}
+            AND ProjectManagerID = ${user.UserID}
+        `;
+
+        if (project.recordset.length === 0) {
+
+            const error = new Error(
+                "You can only update tasks in projects you manage."
+            );
+
+            error.statusCode = 403;
+            throw error;
+        }
+    }
+
+
+  
+
+    if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
+
+        if (departmentId !== user.DepartmentID) {
+
+            const error = new Error(
+                "You can only update tasks belonging to your department."
+            );
+
+            error.statusCode = 403;
+            throw error;
+        }
+    }
+
+
 
     const finalStatus =
         Status ?? currentTask.Status;
 
+
+
     const finalDueDate =
         DueDate ?? currentTask.DueDate;
 
-    const finalCompletedDate =
-        CompletedDate ?? currentTask.CompletedDate;
 
-    // IMPORTANT:
-    // If Blocker is explicitly sent as null,
-    // we should use null and clear the old blocker.
-    //
-    // If Blocker is undefined,
-    // it means the field was not sent,
-    // so keep the existing blocker.
+    let finalCompletedDate;
 
-    const finalBlocker =
-        Blocker !== undefined
-            ? Blocker
-            : currentTask.Blocker;
+    if (Status !== undefined && Status !== "Completed") {
+
+        finalCompletedDate = null;
+
+    } else if (CompletedDate !== undefined) {
+
+        finalCompletedDate = CompletedDate;
+
+    } else {
 
 
-    // =========================================
-    // Completed Date validation
-    // =========================================
+
+        finalCompletedDate = currentTask.CompletedDate;
+    }
+
+
+
+
+    let finalBlocker;
+
+    if (Status !== undefined && Status !== "Blocked") {
+
+  
+
+        finalBlocker = null;
+
+    } else if (Blocker !== undefined) {
+
+
+
+        finalBlocker = Blocker;
+
+    } else {
+
+
+        finalBlocker = currentTask.Blocker;
+    }
+
+
+  
 
     if (
         finalStatus === "Completed" &&
         !finalCompletedDate
     ) {
+
         const error = new Error(
             "Completed date must be provided when marking a task as completed."
         );
@@ -288,6 +573,7 @@ const updateTask = async (taskId, data) => {
         finalStatus !== "Completed" &&
         finalCompletedDate
     ) {
+
         const error = new Error(
             "Completed date should only be set when the task is marked as completed."
         );
@@ -297,14 +583,12 @@ const updateTask = async (taskId, data) => {
     }
 
 
-    // =========================================
-    // Blocker validation
-    // =========================================
 
     if (
         finalStatus !== "Blocked" &&
         finalBlocker
     ) {
+
         const error = new Error(
             "Blocker must be empty when task status is not Blocked."
         );
@@ -314,13 +598,11 @@ const updateTask = async (taskId, data) => {
     }
 
 
-    // =========================================
-    // Validate Assigned User
-    // =========================================
+
 
     if (AssignedToUserID !== undefined) {
 
-        const user = await sql.query`
+        const assignedUser = await sql.query`
             SELECT UserID
             FROM Users
             WHERE UserID = ${AssignedToUserID}
@@ -328,7 +610,8 @@ const updateTask = async (taskId, data) => {
             AND IsActive = 1
         `;
 
-        if (user.recordset.length === 0) {
+        if (assignedUser.recordset.length === 0) {
+
             const error = new Error(
                 "Assigned user must belong to the task department."
             );
@@ -339,9 +622,7 @@ const updateTask = async (taskId, data) => {
     }
 
 
-    // =========================================
-    // Update Task
-    // =========================================
+
 
     await sql.query`
         UPDATE ProjectTasks
@@ -384,10 +665,7 @@ const updateTask = async (taskId, data) => {
                 ),
 
             CompletedDate =
-                COALESCE(
-                    ${finalCompletedDate},
-                    CompletedDate
-                ),
+                ${finalCompletedDate},
 
             Blocker =
                 ${finalBlocker}
@@ -396,9 +674,7 @@ const updateTask = async (taskId, data) => {
     `;
 
 
-    // =========================================
-    // Get updated task
-    // =========================================
+
 
     const updatedTask = await sql.query`
         SELECT *
@@ -406,10 +682,6 @@ const updateTask = async (taskId, data) => {
         WHERE TaskID = ${taskId}
     `;
 
-
-    // =========================================
-    // Return
-    // =========================================
 
     return {
         message: "Task updated successfully",
@@ -435,55 +707,184 @@ const deleteTask = async (taskId) => {
     };
 };
 
-const getTask = async (taskId) => {
-    const result = await sql.query`
-SELECT
-    t.*,
-    t.AssignedTo AS AssignedToUserID,
-    u.FullName AS AssignedToName,
-    s.StageName,
-    p.ProjectName,
-    d.DepartmentName AS DepartmentName
-FROM ProjectTasks t
+const getTask = async (taskId, user) => {
 
-JOIN Users u
-    ON t.AssignedTo = u.UserID
-
-JOIN ProjectStages s
-    ON t.StageID = s.StageID
-
-JOIN Projects p
-    ON t.ProjectID = p.ProjectID
-
-LEFT JOIN Departments d
-    ON t.DepartmentID = d.DepartmentID
-
-WHERE t.TaskID = ${taskId}
-    `;
+    let result;
 
 
-const comments = await sql.query`
-    SELECT
-        c.*,
-        u.FullName AS CreatedByName
-    FROM Comments c
-    LEFT JOIN Users u
-        ON c.CreatedBy = u.UserID
-    WHERE c.ReferenceID = ${taskId}
-`;
-    
+
+    if (user.RoleName === Roles.ADMIN) {
+
+        result = await sql.query`
+            SELECT
+                t.*,
+                t.AssignedTo AS AssignedToUserID,
+                u.FullName AS AssignedToName,
+                s.StageName,
+                p.ProjectName,
+                d.DepartmentName AS DepartmentName
+
+            FROM ProjectTasks t
+
+            JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            WHERE t.TaskID = ${taskId}
+        `;
+    }
+
+
+
+
+    else if (user.RoleName === Roles.PROJECT_MANAGER) {
+
+        result = await sql.query`
+            SELECT
+                t.*,
+                t.AssignedTo AS AssignedToUserID,
+                u.FullName AS AssignedToName,
+                s.StageName,
+                p.ProjectName,
+                d.DepartmentName AS DepartmentName
+
+            FROM ProjectTasks t
+
+            JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            WHERE t.TaskID = ${taskId}
+            AND p.ProjectManagerID = ${user.UserID}
+        `;
+    }
+
+
+
+
+    else if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
+
+        result = await sql.query`
+            SELECT
+                t.*,
+                t.AssignedTo AS AssignedToUserID,
+                u.FullName AS AssignedToName,
+                s.StageName,
+                p.ProjectName,
+                d.DepartmentName AS DepartmentName
+
+            FROM ProjectTasks t
+
+            JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            WHERE t.TaskID = ${taskId}
+            AND t.DepartmentID = ${user.DepartmentID}
+        `;
+    }
+
+
+
+
+    else if (user.RoleName === Roles.EMPLOYEE) {
+
+        result = await sql.query`
+            SELECT
+                t.*,
+                t.AssignedTo AS AssignedToUserID,
+                u.FullName AS AssignedToName,
+                s.StageName,
+                p.ProjectName,
+                d.DepartmentName AS DepartmentName
+
+            FROM ProjectTasks t
+
+            JOIN Users u
+                ON t.AssignedTo = u.UserID
+
+            JOIN ProjectStages s
+                ON t.StageID = s.StageID
+
+            JOIN Projects p
+                ON t.ProjectID = p.ProjectID
+
+            LEFT JOIN Departments d
+                ON t.DepartmentID = d.DepartmentID
+
+            WHERE t.TaskID = ${taskId}
+            AND t.AssignedTo = ${user.UserID}
+        `;
+    }
+
+
+
+
+    else {
+
+        const error = new Error("Access denied.");
+        error.statusCode = 403;
+        throw error;
+    }
+
+
+ 
 
     if (result.recordset.length === 0) {
-        const error = new Error("Task not found.");
+        const error = new Error(
+            "Task not found or you do not have access to this task."
+        );
+
         error.statusCode = 404;
         throw error;
     }
 
-    return [ 
+
+ 
+
+    const comments = await sql.query`
+        SELECT
+            c.*,
+            u.FullName AS CreatedByName
+        FROM Comments c
+
+        LEFT JOIN Users u
+            ON c.CreatedBy = u.UserID
+
+        WHERE c.ReferenceID = ${taskId}
+    `;
+
+
+
+
+    return [
         result.recordset,
         comments.recordset
-        
-    ]
+    ];
 };
 
 module.exports = {

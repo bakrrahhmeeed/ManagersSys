@@ -18,20 +18,17 @@ const {
 
 
 
-router.get   ("/",authorizeRoles(
-    Roles.ADMIN,
-    Roles.PMO_MANAGER,
-    Roles.DEPARTMENT_MANAGER,
-    Roles.PROJECT_MANAGER
-),getprojects);
+router.get   ("/",getprojects);
 router.get   ("/:id",getprojectsById);
 router.post  ("/",authorizeRoles(
     Roles.ADMIN,
     Roles.PMO_MANAGER,
+    Roles.SECRETARY
 ),createProjectValidation,createproject);
 router.put   ("/:id",authorizeRoles(
     Roles.ADMIN,
-    Roles.PMO_MANAGER
+    Roles.PMO_MANAGER,
+    Roles.SECRETARY
 ),updateProjectValidation, updateProject);
 router.delete("/:id",authorizeRoles(
     Roles.ADMIN
