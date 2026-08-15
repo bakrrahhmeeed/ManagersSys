@@ -114,8 +114,8 @@ function Dashboard() {
         value: getStatusCount("In Progress"),
       },
       {
-        name: "On Hold",
-        value: getStatusCount("On Hold"),
+        name: "Blocked",
+        value: getStatusCount("Blocked"),
       },
       {
         name: "Overdue",

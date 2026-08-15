@@ -1,66 +1,86 @@
 const sql = require("mssql");
 
 const projectdetails = async (id, user) => {
+
     const Roles = require("../constants/roles");
 
     if (
         user.RoleName !== Roles.ADMIN &&
         user.RoleName !== Roles.PMO_MANAGER
     ) {
+
+
         if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
 
             const access = await sql.query`
                 SELECT TOP 1 1
                 FROM ProjectDepartments
-                WHERE ProjectID = ${id}
-                AND DepartmentID = ${user.DepartmentID}
+                WHERE
+                    ProjectID = ${id}
+                    AND DepartmentID = ${user.DepartmentID}
             `;
 
             if (access.recordset.length === 0) {
+
                 const error = new Error("Access denied.");
                 error.statusCode = 403;
+
                 throw error;
             }
         }
+
 
         else if (user.RoleName === Roles.PROJECT_MANAGER) {
 
             const access = await sql.query`
                 SELECT TOP 1 1
                 FROM Projects
-                WHERE ProjectID = ${id}
-                AND ProjectManagerID = ${user.UserID}
+                WHERE
+                    ProjectID = ${id}
+                    AND ProjectManagerID = ${user.UserID}
             `;
 
             if (access.recordset.length === 0) {
+
                 const error = new Error("Access denied.");
                 error.statusCode = 403;
+
                 throw error;
             }
         }
+
+
 
         else if (user.RoleName === Roles.EMPLOYEE) {
 
             const access = await sql.query`
                 SELECT TOP 1 1
                 FROM ProjectTasks
-                WHERE ProjectID = ${id}
-                AND AssignedToUserID = ${user.UserID}
+                WHERE
+                    ProjectID = ${id}
+                    AND AssignedTo = ${user.UserID}
             `;
 
             if (access.recordset.length === 0) {
+
                 const error = new Error("Access denied.");
                 error.statusCode = 403;
+
                 throw error;
             }
         }
 
+
         else {
+
             const error = new Error("Access denied.");
             error.statusCode = 403;
+
             throw error;
         }
     }
+
+
 
     const [
         project,
@@ -74,7 +94,8 @@ const projectdetails = async (id, user) => {
         keyResults
     ] = await Promise.all([
 
-        // Project
+
+
         sql.query`
             SELECT
                 p.*,
@@ -91,7 +112,7 @@ const projectdetails = async (id, user) => {
             WHERE p.ProjectID = ${id}
         `,
 
-        // Project Departments
+
         sql.query`
             SELECT
                 pd.ProjectID,
@@ -107,7 +128,7 @@ const projectdetails = async (id, user) => {
             ORDER BY pd.DepartmentID
         `,
 
-        // Stages
+
         sql.query`
             SELECT
                 ps.*,
@@ -126,7 +147,8 @@ const projectdetails = async (id, user) => {
             ORDER BY ps.StageOrder
         `,
 
-        // Tasks
+
+
         sql.query`
             SELECT
                 pt.*,
@@ -143,7 +165,8 @@ const projectdetails = async (id, user) => {
             WHERE pt.ProjectID = ${id}
         `,
 
-        // Updates
+
+
         sql.query`
             SELECT
                 pu.*,
@@ -162,7 +185,7 @@ const projectdetails = async (id, user) => {
             ORDER BY pu.CreatedAt DESC
         `,
 
-        // Issues
+
         sql.query`
             SELECT
                 i.*,
@@ -175,7 +198,8 @@ const projectdetails = async (id, user) => {
             WHERE i.ProjectID = ${id}
         `,
 
-        // Risks
+
+
         sql.query`
             SELECT
                 r.*,
@@ -188,7 +212,8 @@ const projectdetails = async (id, user) => {
             WHERE r.ProjectID = ${id}
         `,
 
-        // Objectives
+
+
         sql.query`
             SELECT
                 o.*,
@@ -201,56 +226,275 @@ const projectdetails = async (id, user) => {
             WHERE o.ProjectID = ${id}
         `,
 
-        // Key Results
+
         sql.query`
-    SELECT
-        kr.*,
-        u.FullName AS ResponsibleUserName
-    FROM KeyResults kr
+            SELECT
+                kr.*,
+                u.FullName AS ResponsibleUserName
+            FROM KeyResults kr
 
-    LEFT JOIN Users u
-        ON kr.ResponsibleUserID = u.UserID
+            LEFT JOIN Users u
+                ON kr.ResponsibleUserID = u.UserID
 
-    INNER JOIN Objectives o
-        ON kr.ObjectiveID = o.ObjectiveID
+            INNER JOIN Objectives o
+                ON kr.ObjectiveID = o.ObjectiveID
 
-    WHERE o.ProjectID = ${id}
-`,
+            WHERE o.ProjectID = ${id}
+        `
     ]);
 
+
+
+
     if (project.recordset.length === 0) {
+
         const error = new Error("Project not found.");
         error.statusCode = 404;
+
         throw error;
     }
 
-    // Attach Tasks to Stages
+
+
     stages.recordset.forEach(stage => {
+
         stage.tasks = tasks.recordset.filter(
-            task => task.StageID === stage.StageID
+            task =>
+                task.StageID === stage.StageID
         );
     });
 
-    // Attach Key Results to Objectives
+
+
     objectives.recordset.forEach(objective => {
-        objective.keyResults = keyResults.recordset.filter(
-            keyResult => keyResult.ObjectiveID === objective.ObjectiveID
-        );
+
+        objective.keyResults =
+            keyResults.recordset.filter(
+                keyResult =>
+                    keyResult.ObjectiveID ===
+                    objective.ObjectiveID
+            );
     });
+
+
+
+
+    let totalStageProgress = 0;
+
+    let completedStages = 0;
+
+
+    const calculatedStages =
+        stages.recordset.map(stage => {
+
+            let progress = 0;
+
+
+
+            if (stage.Status === "Completed") {
+
+                progress = 100;
+
+                completedStages++;
+            }
+
+
+
+            else if (
+                stage.Status === "Not Started"
+            ) {
+
+                progress = 0;
+            }
+
+
+
+            else if (
+                stage.Status === "Blocked"
+            ) {
+
+                progress = 0;
+            }
+
+
+
+            else if (
+                stage.Status === "In Progress"
+            ) {
+
+                const stageTasks =
+                    tasks.recordset.filter(
+                        task =>
+                            task.StageID ===
+                            stage.StageID
+                    );
+
+
+                const totalStageTasks =
+                    stageTasks.length;
+
+
+                const completedStageTasks =
+                    stageTasks.filter(
+                        task =>
+                            task.Status ===
+                            "Completed"
+                    ).length;
+
+
+                progress =
+                    totalStageTasks === 0
+                        ? 0
+                        : (
+                            completedStageTasks /
+                            totalStageTasks
+                        ) * 100;
+            }
+
+
+
+            progress = Math.min(
+                100,
+                Math.max(
+                    0,
+                    progress
+                )
+            );
+
+
+            totalStageProgress += progress;
+
+
+            return {
+                ...stage,
+
+                progress: Number(
+                    progress.toFixed(2)
+                )
+            };
+        });
+
+
+    const totalStages =
+        calculatedStages.length;
+
+
+    const overallProgress =
+        totalStages === 0
+            ? 0
+            : totalStageProgress /
+              totalStages;
+
+
+    const totalTasks =
+        tasks.recordset.length;
+
+
+    const completedTasks =
+        tasks.recordset.filter(
+            task =>
+                task.Status === "Completed"
+        ).length;
+
+
+
+    const totalIssues =
+        issues.recordset.length;
+
+
+    const openIssues =
+        issues.recordset.filter(
+            issue =>
+                issue.Status !== "Resolved" &&
+                issue.Status !== "Closed"
+        ).length;
+
+
+    const totalRisks =
+        risks.recordset.length;
+
+
+    const highPriorityRisks =
+        risks.recordset.filter(
+            risk =>
+                risk.Priority === "High" ||
+                risk.PriorityLevel === "High"
+        ).length;
+
+
+
+    const totalObjectives =
+        objectives.recordset.length;
+
+
+    const totalKeyResults =
+        keyResults.recordset.length;
+
+
+    const projectData =
+        project.recordset[0];
+
+
+
+    const {
+        ProgressPercent,
+        ...projectWithoutOldProgress
+    } = projectData;
+
 
     return {
-        project: {
-            ...project.recordset[0],
 
-            // Departments connected to this project
-            projectDepartments: projectDepartments.recordset
+        project: {
+
+            ...projectWithoutOldProgress,
+
+
+            projectDepartments:
+                projectDepartments.recordset,
+
+
+            totalStages,
+
+            completedStages,
+
+            totalTasks,
+
+            completedTasks,
+
+            totalIssues,
+
+            openIssues,
+
+            totalRisks,
+
+            highPriorityRisks,
+
+            totalObjectives,
+
+            totalKeyResults,
+
+
+            overallProgress:
+                Number(
+                    overallProgress.toFixed(2)
+                )
         },
 
-        stages: stages.recordset,
-        updates: updates.recordset,
-        issues: issues.recordset,
-        risks: risks.recordset,
-        objectives: objectives.recordset
+
+        stages:
+            calculatedStages,
+
+        updates:
+            updates.recordset,
+
+        issues:
+            issues.recordset,
+
+        risks:
+            risks.recordset,
+
+        objectives:
+            objectives.recordset
     };
 };
 

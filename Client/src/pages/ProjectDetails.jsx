@@ -160,45 +160,85 @@ const [saving, setSaving] = useState(false);
         });
     }, [project, data?.projectDepartments]);
 
-    const totalTasks = useMemo(
-        () =>
-            stages.reduce(
-                (total, stage) => total + (stage.tasks?.length || 0),
-                0
-            ),
-        [stages]
+    // =========================================================
+    // CALCULATED VALUES FROM PROJECT DETAILS API
+    // =========================================================
+    // The API now calculates project statistics and progress.
+    // Keep local fallbacks only for compatibility with older responses.
+
+    const totalStages = Number(
+        project?.totalStages ?? stages.length
     );
 
-    const completedTasks = useMemo(
-        () =>
-            stages.reduce(
-                (total, stage) =>
-                    total +
-                    (stage.tasks || []).filter(
-                        (task) => task.Status === "Completed"
-                    ).length,
-                0
-            ),
-        [stages]
+    const completedStages = Number(
+        project?.completedStages ??
+        stages.filter(
+            (stage) => stage.Status === "Completed"
+        ).length
     );
 
-    const completedStages = stages.filter(
-        (stage) => stage.Status === "Completed"
-    ).length;
+    const totalTasks = Number(
+        project?.totalTasks ??
+        stages.reduce(
+            (total, stage) =>
+                total + (stage.tasks?.length || 0),
+            0
+        )
+    );
 
-    const openIssues = issues.filter(
-        (issue) => issue.Status !== "Resolved"
-    ).length;
+    const completedTasks = Number(
+        project?.completedTasks ??
+        stages.reduce(
+            (total, stage) =>
+                total +
+                (stage.tasks || []).filter(
+                    (task) => task.Status === "Completed"
+                ).length,
+            0
+        )
+    );
 
-    const highPriorityRisks = risks.filter(
-        (risk) =>
-            risk.RiskLevel === "High" || risk.ImpactLevel === "High"
-    ).length;
+    const totalIssues = Number(
+        project?.totalIssues ?? issues.length
+    );
 
-    const totalKeyResults = objectives.reduce(
-        (total, objective) =>
-            total + (objective.keyResults?.length || 0),
-        0
+    const openIssues = Number(
+        project?.openIssues ??
+        issues.filter(
+            (issue) =>
+                issue.Status !== "Resolved" &&
+                issue.Status !== "Closed"
+        ).length
+    );
+
+    const totalRisks = Number(
+        project?.totalRisks ?? risks.length
+    );
+
+    const highPriorityRisks = Number(
+        project?.highPriorityRisks ??
+        risks.filter(
+            (risk) =>
+                risk.RiskLevel === "High" ||
+                risk.ImpactLevel === "High"
+        ).length
+    );
+
+    const totalObjectives = Number(
+        project?.totalObjectives ?? objectives.length
+    );
+
+    const totalKeyResults = Number(
+        project?.totalKeyResults ??
+        objectives.reduce(
+            (total, objective) =>
+                total + (objective.keyResults?.length || 0),
+            0
+        )
+    );
+
+    const overallProgress = Number(
+        project?.overallProgress ?? 0
     );
 
     const formatDate = (date) => {
@@ -353,7 +393,7 @@ const [saving, setSaving] = useState(false);
                         </div>
 
                         <div class="report-grid report-grid-4">
-                            <div><span>Progress</span><strong>${stage.ProgressPercent || 0}%</strong></div>
+                            <div><span>Progress</span><strong>${stage.progress ?? 0}%</strong></div>
                             <div><span>Start Date</span><strong>${escapeHtml(formatDate(stage.StartDate))}</strong></div>
                             <div><span>End Date</span><strong>${escapeHtml(formatDate(stage.EndDate))}</strong></div>
                             <div><span>Tasks</span><strong>${stage.tasks?.length || 0}</strong></div>
@@ -516,7 +556,7 @@ const [saving, setSaving] = useState(false);
             <div><span>Project Manager</span><strong>${escapeHtml(project.ProjectManagerName || `User #${project.ProjectManagerID}`)}</strong></div>
             <div><span>Project Type</span><strong>${escapeHtml(project.ProjectType)}</strong></div>
             <div><span>Priority</span><strong>${escapeHtml(project.PriorityLevel)}</strong></div>
-            <div><span>Overall Progress</span><strong>${project.ProgressPercent || 0}%</strong></div>
+            <div><span>Overall Progress</span><strong>${project.overallProgress ?? 0}%</strong></div>
         </div>
         <div class="info-grid">
             <div><span class="info-label">Start Date</span><strong>${escapeHtml(formatDate(project.StartDate))}</strong></div>
@@ -529,10 +569,10 @@ const [saving, setSaving] = useState(false);
     <section class="report-card">
         <div class="report-section-title"><div><h3>Project Summary</h3></div></div>
         <div class="summary">
-            <div><span>Stages</span><strong>${stages.length}</strong></div>
+            <div><span>Stages</span><strong>${totalStages}</strong></div>
             <div><span>Tasks</span><strong>${totalTasks}</strong></div>
-            <div><span>Issues</span><strong>${issues.length}</strong></div>
-            <div><span>Risks</span><strong>${risks.length}</strong></div>
+            <div><span>Issues</span><strong>${totalIssues}</strong></div>
+            <div><span>Risks</span><strong>${totalRisks}</strong></div>
         </div>
     </section>
 
@@ -955,13 +995,13 @@ const [saving, setSaving] = useState(false);
                                     className="large-progress-circle"
                                     style={{
                                         "--progress": `${
-                                            project.ProgressPercent || 0
+                                            project.overallProgress ?? 0
                                         }%`,
                                     }}
                                 >
                                     <div>
                                         <strong>
-                                            {project.ProgressPercent || 0}%
+                                            {project.overallProgress ?? 0}%
                                         </strong>
                                         <span>Overall Progress</span>
                                     </div>
@@ -1005,7 +1045,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card blue">
                                 <div>
                                     <span>Total Stages</span>
-                                    <strong>{stages.length}</strong>
+                                    <strong>{totalStages}</strong>
                                     <small>Completed: {completedStages}</small>
                                 </div>
                                 <div className="stat-icon">
@@ -1027,7 +1067,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card orange">
                                 <div>
                                     <span>Issues</span>
-                                    <strong>{issues.length}</strong>
+                                    <strong>{totalIssues}</strong>
                                     <small>Open: {openIssues}</small>
                                 </div>
                                 <div className="stat-icon">
@@ -1038,7 +1078,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card red">
                                 <div>
                                     <span>Risks</span>
-                                    <strong>{risks.length}</strong>
+                                    <strong>{totalRisks}</strong>
                                     <small>
                                         High Priority: {highPriorityRisks}
                                     </small>
@@ -1051,7 +1091,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card purple">
                                 <div>
                                     <span>Objectives</span>
-                                    <strong>{objectives.length}</strong>
+                                    <strong>{totalObjectives}</strong>
                                     <small>
                                         Key Results: {totalKeyResults}
                                     </small>
@@ -1115,16 +1155,13 @@ const [saving, setSaving] = useState(false);
                                             </span>
 
                                             <strong className="stage-progress-text">
-                                                {stage.ProgressPercent || 0}%
+                                                {stage.progress ?? 0}%
                                             </strong>
 
                                             <div className="stage-progress">
                                                 <div
                                                     style={{
-                                                        width: `${
-                                                            stage.ProgressPercent ||
-                                                            0
-                                                        }%`,
+                                                        width: `${stage.progress ?? 0}%`,
                                                     }}
                                                 />
                                             </div>

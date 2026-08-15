@@ -12,11 +12,6 @@ const dashboard = async (user) => {
     let notifications = [];
 
 
-
-    // =========================================================
-    // ADMIN / PMO MANAGER
-    // =========================================================
-
     if (
         user.RoleName === Roles.ADMIN ||
         user.RoleName === Roles.PMO_MANAGER
@@ -72,42 +67,19 @@ const dashboard = async (user) => {
         };
 
 
-        // Recent Projects
         const latestProjectsResult = await sql.query`
 
             SELECT TOP 5
-
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
-
-                CAST(
-                    COALESCE(
-                        AVG(CAST(t.ProgressPercent AS FLOAT)),
-                        p.ProgressPercent,
-                        0
-                    )
-                AS DECIMAL(5,2)) AS Progress,
-
                 u.FullName AS ProjectManager,
-
                 p.TargetEndDate AS DueDate
 
             FROM Projects p
 
-            LEFT JOIN ProjectTasks t
-                ON p.ProjectID = t.ProjectID
-
             LEFT JOIN Users u
                 ON p.ProjectManagerID = u.UserID
-
-            GROUP BY
-                p.ProjectID,
-                p.ProjectName,
-                p.Status,
-                p.ProgressPercent,
-                p.TargetEndDate,
-                u.FullName
 
             ORDER BY p.ProjectID DESC
         `;
@@ -115,11 +87,6 @@ const dashboard = async (user) => {
         latestProjects = latestProjectsResult.recordset;
     }
 
-
-
-    // =========================================================
-    // DEPARTMENT MANAGER
-    // =========================================================
 
     else if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
 
@@ -134,8 +101,10 @@ const dashboard = async (user) => {
             sql.query`
                 SELECT COUNT(DISTINCT p.ProjectID) AS Total
                 FROM Projects p
+
                 INNER JOIN ProjectDepartments pd
                     ON p.ProjectID = pd.ProjectID
+
                 WHERE pd.DepartmentID = ${user.DepartmentID}
             `,
 
@@ -150,16 +119,20 @@ const dashboard = async (user) => {
             sql.query`
                 SELECT COUNT(DISTINCT t.TaskID) AS Total
                 FROM ProjectTasks t
+
                 INNER JOIN ProjectDepartments pd
                     ON t.ProjectID = pd.ProjectID
+
                 WHERE pd.DepartmentID = ${user.DepartmentID}
             `,
 
             sql.query`
                 SELECT COUNT(DISTINCT t.TaskID) AS Total
                 FROM ProjectTasks t
+
                 INNER JOIN ProjectDepartments pd
                     ON t.ProjectID = pd.ProjectID
+
                 WHERE
                     pd.DepartmentID = ${user.DepartmentID}
                     AND t.DueDate IS NOT NULL
@@ -170,8 +143,10 @@ const dashboard = async (user) => {
             sql.query`
                 SELECT COUNT(DISTINCT t.TaskID) AS Total
                 FROM ProjectTasks t
+
                 INNER JOIN ProjectDepartments pd
                     ON t.ProjectID = pd.ProjectID
+
                 WHERE
                     pd.DepartmentID = ${user.DepartmentID}
                     AND t.Status = 'Completed'
@@ -188,31 +163,13 @@ const dashboard = async (user) => {
         };
 
 
-        // Recent Projects
         const latestProjectsResult = await sql.query`
 
             SELECT DISTINCT TOP 5
-
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
-
-                CAST(
-                    COALESCE(
-                        (
-                            SELECT AVG(
-                                CAST(t2.ProgressPercent AS FLOAT)
-                            )
-                            FROM ProjectTasks t2
-                            WHERE t2.ProjectID = p.ProjectID
-                        ),
-                        p.ProgressPercent,
-                        0
-                    )
-                AS DECIMAL(5,2)) AS Progress,
-
                 u.FullName AS ProjectManager,
-
                 p.TargetEndDate AS DueDate
 
             FROM Projects p
@@ -233,10 +190,6 @@ const dashboard = async (user) => {
 
 
 
-    // =========================================================
-    // PROJECT MANAGER
-    // =========================================================
-
     else if (user.RoleName === Roles.PROJECT_MANAGER) {
 
         const [
@@ -254,24 +207,40 @@ const dashboard = async (user) => {
             `,
 
             sql.query`
-                SELECT COUNT(*) AS Total
-                FROM Users
-                WHERE IsActive = 1
+                SELECT COUNT(DISTINCT u.UserID) AS Total
+
+                FROM Users u
+
+                INNER JOIN ProjectTasks t
+                    ON u.UserID = t.AssignedTo
+
+                INNER JOIN Projects p
+                    ON t.ProjectID = p.ProjectID
+
+                WHERE
+                    p.ProjectManagerID = ${user.UserID}
+                    AND u.IsActive = 1
             `,
 
             sql.query`
                 SELECT COUNT(*) AS Total
+
                 FROM ProjectTasks t
+
                 INNER JOIN Projects p
                     ON t.ProjectID = p.ProjectID
+
                 WHERE p.ProjectManagerID = ${user.UserID}
             `,
 
             sql.query`
                 SELECT COUNT(*) AS Total
+
                 FROM ProjectTasks t
+
                 INNER JOIN Projects p
                     ON t.ProjectID = p.ProjectID
+
                 WHERE
                     p.ProjectManagerID = ${user.UserID}
                     AND t.DueDate IS NOT NULL
@@ -281,9 +250,12 @@ const dashboard = async (user) => {
 
             sql.query`
                 SELECT COUNT(*) AS Total
+
                 FROM ProjectTasks t
+
                 INNER JOIN Projects p
                     ON t.ProjectID = p.ProjectID
+
                 WHERE
                     p.ProjectManagerID = ${user.UserID}
                     AND t.Status = 'Completed'
@@ -300,44 +272,21 @@ const dashboard = async (user) => {
         };
 
 
-        // Recent Projects
         const latestProjectsResult = await sql.query`
 
             SELECT TOP 5
-
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
-
-                CAST(
-                    COALESCE(
-                        AVG(CAST(t.ProgressPercent AS FLOAT)),
-                        p.ProgressPercent,
-                        0
-                    )
-                AS DECIMAL(5,2)) AS Progress,
-
                 u.FullName AS ProjectManager,
-
                 p.TargetEndDate AS DueDate
 
             FROM Projects p
-
-            LEFT JOIN ProjectTasks t
-                ON p.ProjectID = t.ProjectID
 
             LEFT JOIN Users u
                 ON p.ProjectManagerID = u.UserID
 
             WHERE p.ProjectManagerID = ${user.UserID}
-
-            GROUP BY
-                p.ProjectID,
-                p.ProjectName,
-                p.Status,
-                p.ProgressPercent,
-                p.TargetEndDate,
-                u.FullName
 
             ORDER BY p.ProjectID DESC
         `;
@@ -346,10 +295,6 @@ const dashboard = async (user) => {
     }
 
 
-
-    // =========================================================
-    // EMPLOYEE / OTHER ROLES
-    // =========================================================
 
     else {
 
@@ -362,19 +307,25 @@ const dashboard = async (user) => {
 
             sql.query`
                 SELECT COUNT(DISTINCT ProjectID) AS Total
+
                 FROM ProjectTasks
+
                 WHERE AssignedTo = ${user.UserID}
             `,
 
             sql.query`
                 SELECT COUNT(*) AS Total
+
                 FROM ProjectTasks
+
                 WHERE AssignedTo = ${user.UserID}
             `,
 
             sql.query`
                 SELECT COUNT(*) AS Total
+
                 FROM ProjectTasks
+
                 WHERE
                     AssignedTo = ${user.UserID}
                     AND DueDate IS NOT NULL
@@ -384,7 +335,9 @@ const dashboard = async (user) => {
 
             sql.query`
                 SELECT COUNT(*) AS Total
+
                 FROM ProjectTasks
+
                 WHERE
                     AssignedTo = ${user.UserID}
                     AND Status = 'Completed'
@@ -401,32 +354,13 @@ const dashboard = async (user) => {
         };
 
 
-        // Recent Projects
         const latestProjectsResult = await sql.query`
 
             SELECT DISTINCT TOP 5
-
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
-
-                CAST(
-                    COALESCE(
-                        (
-                            SELECT AVG(
-                                CAST(t2.ProgressPercent AS FLOAT)
-                            )
-                            FROM ProjectTasks t2
-                            WHERE
-                                t2.ProjectID = p.ProjectID
-                                AND t2.AssignedTo = ${user.UserID}
-                        ),
-                        0
-                    )
-                AS DECIMAL(5,2)) AS Progress,
-
                 u.FullName AS ProjectManager,
-
                 p.TargetEndDate AS DueDate
 
             FROM Projects p
@@ -446,17 +380,33 @@ const dashboard = async (user) => {
     }
 
 
-
-    // =========================================================
-    // OVERALL PROJECT PROGRESS
-    // =========================================================
-
     const progressData = await getProgress(user);
 
-    chartData = {
-        overallProgress: progressData.overallProgress
-    };
 
+    latestProjects = latestProjects.map((project) => {
+
+        const progressProject =
+            progressData.projects.find(
+                (item) =>
+                    item.projectId === project.ProjectID
+            );
+
+        return {
+            ...project,
+
+            Progress:
+                progressProject
+                    ? progressProject.overallProgress
+                    : 0
+        };
+    });
+
+
+
+    chartData = {
+        overallProgress:
+            progressData.overallProgress
+    };
 
 
     return {
@@ -470,115 +420,47 @@ const dashboard = async (user) => {
 
 
 const getProgress = async (user) => {
+
     let result;
 
-    // =========================================================
-    // ADMIN / PMO MANAGER
-    // =========================================================
+
     if (
         user.RoleName === Roles.ADMIN ||
         user.RoleName === Roles.PMO_MANAGER
     ) {
+
         result = await sql.query`
+
             SELECT
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
 
                 u.FullName AS Manager,
-                p.TargetEndDate AS DueDate,
-
-                COUNT(DISTINCT t.TaskID) AS TotalTasks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN t.Status = 'Completed'
-                        THEN t.TaskID
-                    END
-                ) AS CompletedTasks,
-
-                COUNT(DISTINCT i.IssueID) AS TotalIssues,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN i.Status IN ('Resolved', 'Closed')
-                        THEN i.IssueID
-                    END
-                ) AS ResolvedIssues,
-
-                COUNT(DISTINCT r.RiskID) AS TotalRisks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN r.Status = 'Closed'
-                        THEN r.RiskID
-                    END
-                ) AS ClosedRisks
+                p.TargetEndDate AS DueDate
 
             FROM Projects p
 
             LEFT JOIN Users u
                 ON p.ProjectManagerID = u.UserID
 
-            LEFT JOIN ProjectTasks t
-                ON p.ProjectID = t.ProjectID
-
-            LEFT JOIN Issues i
-                ON p.ProjectID = i.ProjectID
-
-            LEFT JOIN Risks r
-                ON p.ProjectID = r.ProjectID
-
-            GROUP BY
-                p.ProjectID,
-                p.ProjectName,
-                p.Status,
-                p.TargetEndDate,
-                u.FullName
-
             ORDER BY p.ProjectID DESC
         `;
     }
 
-    // =========================================================
-    // DEPARTMENT MANAGER
-    // =========================================================
+
     else if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
+
         result = await sql.query`
-            SELECT
+
+            SELECT DISTINCT
+
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
 
                 u.FullName AS Manager,
-                p.TargetEndDate AS DueDate,
-
-                COUNT(DISTINCT t.TaskID) AS TotalTasks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN t.Status = 'Completed'
-                        THEN t.TaskID
-                    END
-                ) AS CompletedTasks,
-
-                COUNT(DISTINCT i.IssueID) AS TotalIssues,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN i.Status IN ('Resolved', 'Closed')
-                        THEN i.IssueID
-                    END
-                ) AS ResolvedIssues,
-
-                COUNT(DISTINCT r.RiskID) AS TotalRisks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN r.Status = 'Closed'
-                        THEN r.RiskID
-                    END
-                ) AS ClosedRisks
+                p.TargetEndDate AS DueDate
 
             FROM Projects p
 
@@ -588,250 +470,275 @@ const getProgress = async (user) => {
             LEFT JOIN Users u
                 ON p.ProjectManagerID = u.UserID
 
-            LEFT JOIN ProjectTasks t
-                ON p.ProjectID = t.ProjectID
-
-            LEFT JOIN Issues i
-                ON p.ProjectID = i.ProjectID
-
-            LEFT JOIN Risks r
-                ON p.ProjectID = r.ProjectID
-
             WHERE pd.DepartmentID = ${user.DepartmentID}
-
-            GROUP BY
-                p.ProjectID,
-                p.ProjectName,
-                p.Status,
-                p.TargetEndDate,
-                u.FullName
 
             ORDER BY p.ProjectID DESC
         `;
     }
 
-    // =========================================================
-    // PROJECT MANAGER
-    // =========================================================
     else if (user.RoleName === Roles.PROJECT_MANAGER) {
+
         result = await sql.query`
+
             SELECT
+
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
 
                 u.FullName AS Manager,
-                p.TargetEndDate AS DueDate,
-
-                COUNT(DISTINCT t.TaskID) AS TotalTasks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN t.Status = 'Completed'
-                        THEN t.TaskID
-                    END
-                ) AS CompletedTasks,
-
-                COUNT(DISTINCT i.IssueID) AS TotalIssues,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN i.Status IN ('Resolved', 'Closed')
-                        THEN i.IssueID
-                    END
-                ) AS ResolvedIssues,
-
-                COUNT(DISTINCT r.RiskID) AS TotalRisks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN r.Status = 'Closed'
-                        THEN r.RiskID
-                    END
-                ) AS ClosedRisks
+                p.TargetEndDate AS DueDate
 
             FROM Projects p
 
             LEFT JOIN Users u
                 ON p.ProjectManagerID = u.UserID
 
-            LEFT JOIN ProjectTasks t
-                ON p.ProjectID = t.ProjectID
-
-            LEFT JOIN Issues i
-                ON p.ProjectID = i.ProjectID
-
-            LEFT JOIN Risks r
-                ON p.ProjectID = r.ProjectID
-
             WHERE p.ProjectManagerID = ${user.UserID}
-
-            GROUP BY
-                p.ProjectID,
-                p.ProjectName,
-                p.Status,
-                p.TargetEndDate,
-                u.FullName
 
             ORDER BY p.ProjectID DESC
         `;
     }
 
-    // =========================================================
-    // EMPLOYEE / TEAM MEMBER
-    // =========================================================
     else {
+
         result = await sql.query`
-            SELECT
+
+            SELECT DISTINCT
+
                 p.ProjectID,
                 p.ProjectName,
                 p.Status,
 
                 u.FullName AS Manager,
-                p.TargetEndDate AS DueDate,
-
-                COUNT(DISTINCT t.TaskID) AS TotalTasks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN t.Status = 'Completed'
-                        THEN t.TaskID
-                    END
-                ) AS CompletedTasks,
-
-                COUNT(DISTINCT i.IssueID) AS TotalIssues,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN i.Status IN ('Resolved', 'Closed')
-                        THEN i.IssueID
-                    END
-                ) AS ResolvedIssues,
-
-                COUNT(DISTINCT r.RiskID) AS TotalRisks,
-
-                COUNT(
-                    DISTINCT CASE
-                        WHEN r.Status = 'Closed'
-                        THEN r.RiskID
-                    END
-                ) AS ClosedRisks
+                p.TargetEndDate AS DueDate
 
             FROM Projects p
 
             INNER JOIN ProjectTasks t
                 ON p.ProjectID = t.ProjectID
-                AND t.AssignedTo = ${user.UserID}
 
             LEFT JOIN Users u
                 ON p.ProjectManagerID = u.UserID
 
-            LEFT JOIN Issues i
-                ON p.ProjectID = i.ProjectID
-
-            LEFT JOIN Risks r
-                ON p.ProjectID = r.ProjectID
-
-            GROUP BY
-                p.ProjectID,
-                p.ProjectName,
-                p.Status,
-                p.TargetEndDate,
-                u.FullName
+            WHERE t.AssignedTo = ${user.UserID}
 
             ORDER BY p.ProjectID DESC
         `;
     }
 
-    // =========================================================
-    // CALCULATE PROJECT PROGRESS
-    // =========================================================
 
-    const projects = result.recordset.map((project) => {
 
-        const totalTasks = Number(project.TotalTasks);
-        const completedTasks = Number(project.CompletedTasks);
+    const projects = [];
 
-        const totalIssues = Number(project.TotalIssues);
-        const resolvedIssues = Number(project.ResolvedIssues);
 
-        const totalRisks = Number(project.TotalRisks);
-        const closedRisks = Number(project.ClosedRisks);
+    for (const project of result.recordset) {
 
-        const taskProgress =
-            totalTasks === 0
-            ? 0
-            : (completedTasks / totalTasks) * 100;
 
-        const issueProgress =
-            totalIssues === 0
-            ? 0
-            : (resolvedIssues / totalIssues) * 100;
+        const stagesResult = await sql.query`
 
-        const riskProgress =
-            totalRisks === 0
-            ? 0
-            : (closedRisks / totalRisks) * 100;
+            SELECT
+                StageID,
+                StageName,
+                StageOrder,
+                Status
 
-        // Overall Progress
+            FROM ProjectStages
+
+            WHERE ProjectID = ${project.ProjectID}
+
+            ORDER BY StageOrder ASC
+        `;
+
+
+        const stages = stagesResult.recordset;
+
+
+        if (stages.length === 0) {
+
+            projects.push({
+
+                projectId: project.ProjectID,
+                projectName: project.ProjectName,
+                status: project.Status,
+
+                manager: project.Manager || null,
+                dueDate: project.DueDate || null,
+
+                totalStages: 0,
+                completedStages: 0,
+
+                overallProgress: 0,
+
+                stages: []
+            });
+
+            continue;
+        }
+
+
+        let totalStageProgress = 0;
+        let completedStages = 0;
+
+        const stageProgress = [];
+
+
+        for (const stage of stages) {
+
+            let progress = 0;
+
+
+
+            if (stage.Status === "Completed") {
+
+                progress = 100;
+
+                completedStages++;
+            }
+
+
+            else if (stage.Status === "Not Started") {
+
+                progress = 0;
+            }
+
+
+            else if (stage.Status === "Blocked") {
+
+                progress = 0;
+            }
+
+
+            else if (stage.Status === "In Progress") {
+
+                const tasksResult = await sql.query`
+
+                    SELECT
+
+                        COUNT(*) AS TotalTasks,
+
+                        COUNT(
+                            CASE
+                                WHEN Status = 'Completed'
+                                THEN 1
+                            END
+                        ) AS CompletedTasks
+
+                    FROM ProjectTasks
+
+                    WHERE StageID = ${stage.StageID}
+                `;
+
+
+                const totalTasks =
+                    Number(
+                        tasksResult.recordset[0].TotalTasks
+                    );
+
+
+                const completedTasks =
+                    Number(
+                        tasksResult.recordset[0].CompletedTasks
+                    );
+
+
+                progress =
+                    totalTasks === 0
+                        ? 0
+                        : (
+                            completedTasks /
+                            totalTasks
+                        ) * 100;
+            }
+
+
+            progress = Math.min(
+                100,
+                Math.max(
+                    0,
+                    progress
+                )
+            );
+
+
+            // Add stage progress
+            totalStageProgress += progress;
+
+
+            stageProgress.push({
+
+                stageId: stage.StageID,
+
+                stageName: stage.StageName,
+
+                stageOrder: stage.StageOrder,
+
+                status: stage.Status,
+
+                progress: Number(
+                    progress.toFixed(2)
+                )
+            });
+        }
+
+
+
         const overallProgress =
-            (taskProgress * 0.50) +
-            (issueProgress * 0.25) +
-            (riskProgress * 0.25);
+            totalStageProgress /
+            stages.length;
 
-        return {
+
+        projects.push({
+
             projectId: project.ProjectID,
+
             projectName: project.ProjectName,
+
             status: project.Status,
 
-            // NEW
-            manager: project.Manager || null,
-            dueDate: project.DueDate || null,
+            manager:
+                project.Manager ||
+                null,
 
-            totalTasks,
-            completedTasks,
+            dueDate:
+                project.DueDate ||
+                null,
 
-            taskProgress: Number(
-                taskProgress.toFixed(2)
-            ),
+            totalStages:
+                stages.length,
 
-            totalIssues,
-            resolvedIssues,
+            completedStages,
 
-            issueProgress: Number(
-                issueProgress.toFixed(2)
-            ),
+            overallProgress:
+                Number(
+                    overallProgress.toFixed(2)
+                ),
 
-            totalRisks,
-            closedRisks,
+            stages:
+                stageProgress
+        });
+    }
 
-            riskProgress: Number(
-                riskProgress.toFixed(2)
-            ),
-
-            overallProgress: Number(
-                overallProgress.toFixed(2)
-            )
-        };
-    });
-
-    // =========================================================
-    // OVERALL PROGRESS FOR ALL VISIBLE PROJECTS
-    // =========================================================
 
     const overallProgress =
+
         projects.length === 0
+
             ? 0
+
             : projects.reduce(
                 (sum, project) =>
                     sum + project.overallProgress,
                 0
             ) / projects.length;
 
+
     return {
-        overallProgress: Number(
-            overallProgress.toFixed(2)
-        ),
+
+        overallProgress:
+            Number(
+                overallProgress.toFixed(2)
+            ),
 
         projects
     };
@@ -841,9 +748,6 @@ const getTaskStatus = async (user) => {
 
     let result;
 
-
-
-    // ADMIN + PMO MANAGER
     if (
         user.RoleName === Roles.ADMIN ||
         user.RoleName === Roles.PMO_MANAGER
@@ -862,7 +766,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -885,7 +789,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -898,8 +802,6 @@ const getTaskStatus = async (user) => {
     }
 
 
-
-    // DEPARTMENT MANAGER
     else if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
 
         result = await sql.query`
@@ -915,7 +817,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -943,7 +845,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -956,8 +858,6 @@ const getTaskStatus = async (user) => {
     }
 
 
-
-    // PROJECT MANAGER
     else if (user.RoleName === Roles.PROJECT_MANAGER) {
 
         result = await sql.query`
@@ -973,7 +873,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -1001,7 +901,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -1013,9 +913,6 @@ const getTaskStatus = async (user) => {
         `;
     }
 
-
-
-    // EMPLOYEE / OTHER
     else {
 
         result = await sql.query`
@@ -1031,7 +928,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -1056,7 +953,7 @@ const getTaskStatus = async (user) => {
                         THEN 'Overdue'
 
                     WHEN t.Status IN ('Blocked', 'Not Started')
-                        THEN 'On Hold'
+                        THEN 'Blocked'
 
                     WHEN t.Status = 'In Progress'
                         THEN 'In Progress'
@@ -1067,8 +964,6 @@ const getTaskStatus = async (user) => {
             ORDER BY Count DESC
         `;
     }
-
-
 
     return result.recordset;
 };
@@ -1152,7 +1047,7 @@ const getUpcomingDeadlines = async (user) => {
         result = await sql.query`
 
             SELECT TOP 10
-                t.TaskID,a
+                t.TaskID,
                 t.TaskTitle,
                 t.Status,
                 t.PriorityLevel,

@@ -257,15 +257,15 @@ const filteredProjects = useMemo(() => {
         return [...result].sort((a, b) => {
             if (sortBy === "Progress High") {
                 return (
-                    Number(b.ProgressPercent || 0) -
-                    Number(a.ProgressPercent || 0)
+                    Number(b.overallProgress || 0) -
+                    Number(a.overallProgress || 0)
                 );
             }
 
             if (sortBy === "Progress Low") {
                 return (
-                    Number(a.ProgressPercent || 0) -
-                    Number(b.ProgressPercent || 0)
+                    Number(a.overallProgress || 0) -
+                    Number(b.overallProgress || 0)
                 );
             }
 
@@ -498,7 +498,7 @@ const handleMenuAction = (action, project) => {
                                                     Math.max(
                                                         0,
                                                         Number(
-                                                            project.ProgressPercent ||
+                                                            project.overallProgress ||
                                                                 0
                                                         )
                                                     )
