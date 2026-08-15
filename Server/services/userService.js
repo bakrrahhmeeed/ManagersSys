@@ -169,7 +169,9 @@ LEFT JOIN dbo.Branches b
     return result.recordset[0];
   };
 
-  const deleteUser = async(id)=>{
+  const deleteUser = async(id )=>{
+    
+    
     const result = await sql.query`
       DELETE FROM Users
       WHERE UserID = ${id};
@@ -224,24 +226,52 @@ LEFT JOIN dbo.Branches b
   }; }
 
 
-  const updateUserPss = async( data , user)=>{
-   
-    const {password} = data;
+  const updateUserPss = async (data, user) => {
+
+    const { password, oldPassword } = data;
+
   
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const result = await sql.query`
-
-        UPDATE Users
-        SET PasswordHash = ${hashedPassword}
-        WHERE UserID = ${user.UserID};
-
+        SELECT PasswordHash
+        FROM Users
+        WHERE UserID = ${user.UserID}
     `;
 
-    return{
-      message:"password udpated"
+    if (result.recordset.length === 0) {
+        const error = new Error("User not found");
+        error.statusCode = 404;
+        throw error;
     }
-  };
+
+    const currentPasswordHash = result.recordset[0].PasswordHash;
+
+
+    const isMatch = await bcrypt.compare(
+        oldPassword,
+        currentPasswordHash
+    );
+
+    if (!isMatch) {
+        const error = new Error("Old password is incorrect");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const hashedPassword = await bcrypt.hash(
+        password,
+        10
+    );
+
+    await sql.query`
+        UPDATE Users
+        SET PasswordHash = ${hashedPassword}
+        WHERE UserID = ${user.UserID}
+    `;
+
+    return {
+        message: "Password updated successfully"
+    };
+};
 
   const getProjectmanagers = async()=>{
     const result = await sql.query`

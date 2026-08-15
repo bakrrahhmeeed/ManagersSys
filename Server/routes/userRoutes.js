@@ -29,13 +29,13 @@ router.post("/",authorizeRoles(
 ),validateCreateUser,addUser);
 
 router.put("/:id",authorizeRoles(
-    Roles.ADMIN
+    Roles.ADMIN,
+    Roles.SECRETARY
 ),updateuservalidation,updateUser);
-router.put("/pass/:id",authorizeRoles(
-    Roles.EMPLOYEE
-),updateUserPss);
 
-router.delete("/updatePassword",deleteUser);
+router.put("/pass/:id",updateUserPss);
+
+router.delete("/deletuser/:id", authorizeRoles(Roles.ADMIN),deleteUser);
 
 router.get(
 

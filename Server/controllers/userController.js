@@ -34,7 +34,7 @@ const userService = require("../services/userService")
 
   const deleteUser = async(req ,res , next) =>{
     try{
-      const result = await userService.deleteUser(req.params.id)
+      const result = await userService.deleteUser(req.params.id )
       res.status(200).json(result)
     }catch(err){
       next(err);
