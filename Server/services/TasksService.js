@@ -689,6 +689,169 @@ const updateTask = async (taskId, data, user) => {
     };
 };
 
+const updateTaskEmbloyee = async (taskId, data, user) => {
+
+    const {
+        Status,
+        Blocker
+    } = data;
+
+
+    const existingTask = await sql.query`
+        SELECT
+            TaskID,
+            ProjectID,
+            AssignedTo,
+            Status,
+            CompletedDate,
+            Blocker
+        FROM ProjectTasks
+        WHERE TaskID = ${taskId}
+    `;
+
+
+    if (existingTask.recordset.length === 0) {
+
+        const error = new Error("Task not found.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+
+    const currentTask = existingTask.recordset[0];
+
+
+    if (currentTask.AssignedTo !== user.UserID) {
+
+        const error = new Error(
+            "You can only update tasks assigned to you."
+        );
+
+        error.statusCode = 403;
+        throw error;
+    }
+
+
+    const finalStatus =
+        Status !== undefined
+            ? Status
+            : currentTask.Status;
+
+
+    const allowedStatuses = [
+        "Not Started",
+        "In Progress",
+        "Blocked",
+        "Completed"
+    ];
+
+
+    if (!allowedStatuses.includes(finalStatus)) {
+
+        const error = new Error(
+            "Invalid task status."
+        );
+
+        error.statusCode = 400;
+        throw error;
+    }
+
+
+    let finalCompletedDate;
+
+
+    if (finalStatus === "Completed") {
+
+        finalCompletedDate = new Date();
+
+    } else {
+
+        finalCompletedDate = null;
+    }
+
+
+    let finalBlocker;
+
+
+    if (finalStatus === "Blocked") {
+
+        if (Blocker !== undefined && Blocker !== null) {
+
+            if (typeof Blocker !== "string" || !Blocker.trim()) {
+
+                const error = new Error(
+                    "Blocker description is required when task is blocked."
+                );
+
+                error.statusCode = 400;
+                throw error;
+            }
+
+            finalBlocker = Blocker.trim();
+
+        } else if (currentTask.Status === "Blocked" && currentTask.Blocker) {
+
+            finalBlocker = currentTask.Blocker;
+
+        } else {
+
+            const error = new Error(
+                "Blocker description is required when task is blocked."
+            );
+
+            error.statusCode = 400;
+            throw error;
+        }
+
+    } else {
+
+        finalBlocker = null;
+    }
+
+
+
+    await sql.query`
+        UPDATE ProjectTasks
+        SET
+            Status = ${finalStatus},
+            CompletedDate = ${finalCompletedDate},
+            Blocker = ${finalBlocker}
+        WHERE TaskID = ${taskId}
+        AND AssignedTo = ${user.UserID}
+    `;
+
+
+    const updatedTask = await sql.query`
+        SELECT
+            t.*,
+            u.FullName AS AssignedToName,
+            s.StageName,
+            p.ProjectName,
+            d.DepartmentName
+
+        FROM ProjectTasks t
+
+        LEFT JOIN Users u
+            ON t.AssignedTo = u.UserID
+
+        LEFT JOIN ProjectStages s
+            ON t.StageID = s.StageID
+
+        LEFT JOIN Projects p
+            ON t.ProjectID = p.ProjectID
+
+        LEFT JOIN Departments d
+            ON t.DepartmentID = d.DepartmentID
+
+        WHERE t.TaskID = ${taskId}
+    `;
+
+    return {
+        message: "Task status updated successfully.",
+        task: updatedTask.recordset[0]
+    };
+};
+
 const deleteTask = async (taskId) => {
 
     const result = await sql.query`
@@ -892,5 +1055,6 @@ module.exports = {
   createTask,
   updateTask,
   deleteTask,
-  getTask
+  getTask,
+  updateTaskEmbloyee
 };  

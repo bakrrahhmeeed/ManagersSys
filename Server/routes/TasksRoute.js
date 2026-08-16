@@ -8,7 +8,8 @@ const {getAllTasks,
     createTask,
     updateTask,
     deleteTask,
-    getTask
+    getTask,
+    updateTaskEmbloyee
 } = require('../controllers/tasksController');
 
 
@@ -16,6 +17,7 @@ const {getAllTasks,
 router.get('/', getAllTasks);
 router.post('/',authorizeRoles(Roles.ADMIN , Roles.PROJECT_MANAGER , Roles.DEPARTMENT_MANAGER), createTask);
 router.put('/:taskId',authorizeRoles(Roles.ADMIN ,Roles.DEPARTMENT_MANAGER , Roles.PROJECT_MANAGER), updateTask);
+router.put('/employee/:taskid' , authorizeRoles(Roles.EMPLOYEE) , updateTaskEmbloyee)
 router.delete('/:taskId', authorizeRoles(Roles.ADMIN), deleteTask);
 router.get('/:taskId', getTask);
 

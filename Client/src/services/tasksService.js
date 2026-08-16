@@ -29,3 +29,12 @@ export const getUsersByDepartment = async (departmentId) => {
 
     return response.data;
 };
+
+export const updateTaskEmployee = async (taskId, taskData) => {
+    const response = await api.put(
+        `/tasks/employee/${taskId}`,
+        taskData
+    );
+
+    return response.data;
+};

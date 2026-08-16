@@ -46,10 +46,20 @@ const getTask = async (req, res, next) =>  {
     }   
 }
 
+const updateTaskEmbloyee = async(req , res ,next) =>{
+  try{
+    const result = await TasksService.updateTaskEmbloyee(req.params.taskId ,req.body , req.user)
+    res.status(200).json(result)
+  }catch(erorr){
+    next(erorr);
+  }
+}
+
 module.exports = {
   getAllTasks,
     createTask,
     updateTask,
     deleteTask,
-    getTask
+    getTask,
+    updateTaskEmbloyee
 };
