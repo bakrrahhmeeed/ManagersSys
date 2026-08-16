@@ -1,15 +1,33 @@
-import { useEffect, useMemo, useState } from "react";
+import { useContext,useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { getTasks } from "../services/tasksService";
 import "../styles/Tasks.css";
 
+import { AuthContext } from "../context/AuthContext";
+
 function Tasks() {
     const [tasks, setTasks] = useState([]);
     const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+const handleEditTask = (taskId) => {
+
+    console.log("USER:", user);
+    console.log("ROLE:", user?.roleName);
+
+    if (
+        String(user?.roleName || "").toLowerCase() ===
+        "employee"
+    ) {
+        navigate(`/tasks/${taskId}/edit-employee`);
+    } else {
+        navigate(`/tasks/${taskId}/edit`);
+    }
+};
 
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
@@ -345,6 +363,8 @@ function Tasks() {
         return "task-progress-empty";
     };
 
+
+
     /* =========================================================
        CLEAR FILTERS
     ========================================================= */
@@ -363,6 +383,7 @@ function Tasks() {
         priorityFilter !== "All" ||
         projectFilter !== "All" ||
         stageFilter !== "All";
+
 
     /* =========================================================
        LOADING
@@ -981,17 +1002,15 @@ function Tasks() {
 
     type="button"
 
+    onClick={() =>
+
+        handleEditTask(task.TaskID)
+
+    }
+
     title="Edit task"
 
     className="task-action-btn"
-
-    onClick={(e) => {
-
-        e.stopPropagation();
-
-        navigate(`/tasks/${task.TaskID}/edit`);
-
-    }}
 
 >
                                                                 ✎

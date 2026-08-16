@@ -22,14 +22,6 @@ export const updateTask = async (taskId, taskData) => {
     return response.data;
 };
 
-export const getUsersByDepartment = async (departmentId) => {
-    const response = await api.get(
-        `/users/department/${departmentId}`
-    );
-
-    return response.data;
-};
-
 export const updateTaskEmployee = async (taskId, taskData) => {
     const response = await api.put(
         `/tasks/employee/${taskId}`,
@@ -38,3 +30,12 @@ export const updateTaskEmployee = async (taskId, taskData) => {
 
     return response.data;
 };
+
+export const getUsersByDepartment = async (departmentId) => {
+    const response = await api.get(
+        `/users/department/${departmentId}`
+    );
+
+    return response.data;
+};
+

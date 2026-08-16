@@ -21,10 +21,16 @@ const TaskDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
+    const user = JSON.parse(localStorage.getItem("user"));
+
+
     const [task, setTask] = useState(null);
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+
+
 
     useEffect(() => {
         const loadTask = async () => {
@@ -207,9 +213,25 @@ const TaskDetails = () => {
                         type="button"
                         title="Edit task"
                         className="task-action-btnn"
-                        onClick={(e) => {       
-                        e.stopPropagation();
-                        navigate(`/tasks/${task.TaskID}/edit`);}}>
+                            onClick={(e) => {
+
+        e.stopPropagation();
+
+        if (
+
+            String(user?.roleName || "").toLowerCase() === "employee"
+
+        ) {
+
+            navigate(`/tasks/${task.TaskID}/edit-employee`);
+
+        } else {
+
+            navigate(`/tasks/${task.TaskID}/edit`);
+
+        }
+
+    }}>
                                     ✎  Edit Task
                         </button>
                         

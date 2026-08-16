@@ -13,6 +13,7 @@ import EditTask from "./pages/EditTask";
 import CreateUser from "./pages/createUser";
 import UpdateUser from "./pages/Updateuser";
 import UserDetails from "./pages/UserDetails";
+import EditTaskEmb from "./pages/EditTaskEmb";
 
 
 function App() {
@@ -43,6 +44,8 @@ function App() {
         <Route path="/tasks/:id" element={<TaskDetails />} />
 
         <Route path="/tasks/:taskId/edit" element={<EditTask />} />
+
+        <Route path="/tasks/:taskId/edit-employee" element={<EditTaskEmb />}/>
 
 
 
