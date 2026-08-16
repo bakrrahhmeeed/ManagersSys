@@ -1,0 +1,281 @@
+.create-user-page {
+    width: 100%;
+    min-height: 100%;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.create-user-topbar {
+    margin-bottom: 18px;
+}
+
+.create-user-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 12px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+
+    background: #fff;
+    color: #475569;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.create-user-back:hover {
+    color: #e31b23;
+    border-color: #fecaca;
+}
+
+.create-user-card {
+    max-width: 900px;
+    margin: 0 auto;
+
+    background: #fff;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.03);
+
+    overflow: hidden;
+}
+
+.create-user-header {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    padding: 22px;
+
+    border-bottom: 1px solid #eef2f7;
+}
+
+.create-user-icon {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #fff1f2;
+    color: #e31b23;
+
+    font-size: 18px;
+}
+
+.create-user-header h1 {
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.create-user-header p {
+    margin: 4px 0 0;
+
+    color: #64748b;
+
+    font-size: 11px;
+}
+
+.user-form {
+    padding: 22px;
+}
+
+.user-form-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+.user-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.user-form-group label {
+    color: #334155;
+
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.user-form-group input,
+.user-form-group select {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 11px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+
+    background: #fff;
+    color: #172033;
+
+    outline: none;
+
+    font-family: inherit;
+    font-size: 11px;
+}
+
+.user-form-group input:focus,
+.user-form-group select:focus {
+    border-color: #e31b23;
+
+    box-shadow:
+        0 0 0 3px rgba(227, 27, 35, 0.06);
+}
+
+.user-form-group input::placeholder {
+    color: #94a3b8;
+}
+
+.user-form-group small {
+    color: #94a3b8;
+    font-size: 9px;
+}
+
+.active-toggle {
+    height: 40px;
+
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+
+    gap: 9px !important;
+
+    padding: 0 11px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.active-toggle input {
+    width: 16px !important;
+    height: 16px !important;
+    accent-color: #e31b23;
+}
+
+.user-form-error,
+.user-form-success {
+    margin: 18px 22px 0;
+
+    padding: 10px 12px;
+
+    border-radius: 8px;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.user-form-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.user-form-success {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.user-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+
+    margin-top: 25px;
+    padding-top: 18px;
+
+    border-top: 1px solid #eef2f7;
+}
+
+.user-cancel-btn,
+.user-save-btn {
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 0 15px;
+
+    border-radius: 8px;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 750;
+
+    cursor: pointer;
+}
+
+.user-cancel-btn {
+    border: 1px solid #e2e8f0;
+
+    background: #fff;
+    color: #64748b;
+}
+
+.user-save-btn {
+    border: none;
+
+    background: #e31b23;
+    color: #fff;
+
+    box-shadow: 0 5px 14px rgba(227, 27, 35, 0.16);
+}
+
+.user-cancel-btn:hover {
+    background: #f8fafc;
+}
+
+.user-save-btn:hover {
+    background: #c91820;
+}
+
+.user-cancel-btn:disabled,
+.user-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+
+    .create-user-page {
+        padding: 16px;
+    }
+
+    .user-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .user-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .user-cancel-btn,
+    .user-save-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

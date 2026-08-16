@@ -182,48 +182,335 @@ LEFT JOIN dbo.Branches b
     }
   };
 
-  const getuserById = async(id , user)=>{
-
-    const check = await sql.query`
-    SELECT DEPARTMENTID FROM USERS WHERE USERID = ${id}
-    `
-    const departmentid =  check.recordset[0].DepartmentID
-
-    if(user.RoleName === Roles.DEPARTMENT_MANAGER && user.DepartmentID ===  departmentid ){
-     const result = await sql.query`
-      select 
-        UserID ,
-        FullName,
-        UserName,
-        Email,
-        DepartmentID,
-        BranchID,
-        IsActive,
-        CreatedAt
-      from users 
-      WHERE USERID =${id};
-    `
-
-    return result.recordset[0]
+const getuserById = async (id, user) => {
 
 
-    }else{
-     const result = await sql.query`
-      select 
-        UserID ,
-        FullName,
-        UserName,
-        Email,
-        DepartmentID,
-        BranchID,
-        IsActive,
-        CreatedAt
-      from users 
-      WHERE USERID =${id};
-    `
+    const userResult = await sql.query`
+        SELECT
+            u.UserID,
+            u.FullName,
+            u.UserName,
+            u.Email,
 
-    return result.recordset[0]
-  }; }
+            u.DepartmentID,
+            d.DepartmentName,
+
+            u.BranchID,
+            b.BranchName,
+
+            u.IsActive,
+            u.CreatedAt,
+
+            r.RoleName
+
+        FROM Users u
+
+        LEFT JOIN Departments d
+            ON u.DepartmentID = d.DepartmentID
+
+        LEFT JOIN Branches b
+            ON u.BranchID = b.BranchID
+
+        LEFT JOIN UserRoles ur
+            ON u.UserID = ur.UserID
+
+        LEFT JOIN Roles r
+            ON ur.RoleID = r.RoleID
+
+        WHERE u.UserID = ${id}
+    `;
+
+
+
+
+    if (userResult.recordset.length === 0) {
+        const error = new Error("User not found.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+
+    const targetUser = userResult.recordset[0];
+
+
+
+
+    if (
+        user.RoleName === Roles.DEPARTMENT_MANAGER &&
+        user.DepartmentID !== targetUser.DepartmentID
+    ) {
+        const error = new Error(
+            "You can only view users from your department."
+        );
+
+        error.statusCode = 403;
+        throw error;
+    }
+
+
+
+    let tasks = [];
+    let projects = [];
+
+
+
+
+    if (targetUser.RoleName === Roles.PROJECT_MANAGER) {
+
+        const [projectsResult, tasksResult] = await Promise.all([
+
+
+            sql.query`
+                SELECT
+                    p.ProjectID,
+                    p.ProjectName,
+                    p.Status,
+                    p.ProjectDescription,
+                    p.StartDate,
+                    p.TargetEndDate,
+                    p.ProjectManagerID,
+
+                    pm.FullName AS ProjectManagerName
+
+                FROM Projects p
+
+                LEFT JOIN Users pm
+                    ON p.ProjectManagerID = pm.UserID
+
+                WHERE p.ProjectManagerID = ${id}
+
+                ORDER BY p.ProjectID DESC
+            `,
+
+
+
+            sql.query`
+                SELECT
+                    t.TaskID,
+                    t.ProjectID,
+                    p.ProjectName,
+
+                    t.StageID,
+                    s.StageName,
+
+                    t.DepartmentID,
+                    d.DepartmentName,
+
+                    t.TaskTitle,
+                    t.TaskDescription,
+
+                    t.AssignedTo,
+                    u.FullName AS AssignedToName,
+
+                    t.PriorityLevel,
+                    t.Status,
+                    t.ProgressPercent,
+                    t.DueDate,
+                    t.CompletedDate,
+                    t.CreatedBy,
+                    t.CreatedAt,
+                    t.Blocker
+
+                FROM ProjectTasks t
+
+                INNER JOIN Projects p
+                    ON t.ProjectID = p.ProjectID
+
+                LEFT JOIN ProjectStages s
+                    ON t.StageID = s.StageID
+
+                LEFT JOIN Departments d
+                    ON t.DepartmentID = d.DepartmentID
+
+                LEFT JOIN Users u
+                    ON t.AssignedTo = u.UserID
+
+                WHERE p.ProjectManagerID = ${id}
+
+                ORDER BY t.DueDate ASC
+            `
+        ]);
+
+
+        projects = projectsResult.recordset;
+        tasks = tasksResult.recordset;
+    }
+
+
+    else if (targetUser.RoleName === Roles.DEPARTMENT_MANAGER) {
+
+        const [projectsResult, tasksResult] = await Promise.all([
+
+
+            sql.query`
+                SELECT DISTINCT
+                    p.ProjectID,
+                    p.ProjectName,
+                    p.Status,
+                    p.ProjectDescription,
+                    p.StartDate,
+                    p.TargetEndDate,
+                    p.ProjectManagerID,
+
+                    pm.FullName AS ProjectManagerName
+
+                FROM Projects p
+
+                INNER JOIN ProjectDepartments pd
+                    ON p.ProjectID = pd.ProjectID
+
+                LEFT JOIN Users pm
+                    ON p.ProjectManagerID = pm.UserID
+
+                WHERE pd.DepartmentID = ${targetUser.DepartmentID}
+
+                ORDER BY p.ProjectID DESC
+            `,
+
+
+
+            sql.query`
+                SELECT
+                    t.TaskID,
+                    t.ProjectID,
+                    p.ProjectName,
+
+                    t.StageID,
+                    s.StageName,
+
+                    t.DepartmentID,
+                    d.DepartmentName,
+
+                    t.TaskTitle,
+                    t.TaskDescription,
+
+                    t.AssignedTo,
+                    u.FullName AS AssignedToName,
+
+                    t.PriorityLevel,
+                    t.Status,
+                    t.ProgressPercent,
+                    t.DueDate,
+                    t.CompletedDate,
+                    t.CreatedBy,
+                    t.CreatedAt,
+                    t.Blocker
+
+                FROM ProjectTasks t
+
+                INNER JOIN Projects p
+                    ON t.ProjectID = p.ProjectID
+
+                LEFT JOIN ProjectStages s
+                    ON t.StageID = s.StageID
+
+                LEFT JOIN Departments d
+                    ON t.DepartmentID = d.DepartmentID
+
+                LEFT JOIN Users u
+                    ON t.AssignedTo = u.UserID
+
+                WHERE t.DepartmentID = ${targetUser.DepartmentID}
+
+                ORDER BY t.DueDate ASC
+            `
+        ]);
+
+
+        projects = projectsResult.recordset;
+        tasks = tasksResult.recordset;
+    }
+
+
+    else {
+
+        const [projectsResult, tasksResult] = await Promise.all([
+
+            sql.query`
+                SELECT DISTINCT
+                    p.ProjectID,
+                    p.ProjectName,
+                    p.Status,
+                    p.ProjectDescription,
+                    p.StartDate,
+                    p.TargetEndDate,
+                    p.ProjectManagerID,
+
+                    pm.FullName AS ProjectManagerName
+
+                FROM Projects p
+
+                INNER JOIN ProjectTasks t
+                    ON p.ProjectID = t.ProjectID
+
+                LEFT JOIN Users pm
+                    ON p.ProjectManagerID = pm.UserID
+
+                WHERE t.AssignedTo = ${id}
+
+                ORDER BY p.ProjectID DESC
+            `,
+
+
+            sql.query`
+                SELECT
+                    t.TaskID,
+                    t.ProjectID,
+                    p.ProjectName,
+
+                    t.StageID,
+                    s.StageName,
+
+                    t.DepartmentID,
+                    d.DepartmentName,
+
+                    t.TaskTitle,
+                    t.TaskDescription,
+
+                    t.AssignedTo,
+                    u.FullName AS AssignedToName,
+
+                    t.PriorityLevel,
+                    t.Status,
+                    t.ProgressPercent,
+                    t.DueDate,
+                    t.CompletedDate,
+                    t.CreatedBy,
+                    t.CreatedAt,
+                    t.Blocker
+
+                FROM ProjectTasks t
+
+                INNER JOIN Projects p
+                    ON t.ProjectID = p.ProjectID
+
+                LEFT JOIN ProjectStages s
+                    ON t.StageID = s.StageID
+
+                LEFT JOIN Departments d
+                    ON t.DepartmentID = d.DepartmentID
+
+                LEFT JOIN Users u
+                    ON t.AssignedTo = u.UserID
+
+                WHERE t.AssignedTo = ${id}
+
+                ORDER BY t.DueDate ASC
+            `
+        ]);
+
+
+        projects = projectsResult.recordset;
+        tasks = tasksResult.recordset;
+    }
+
+
+    return {
+        user: targetUser,
+        projects,
+        tasks
+    };
+};
 
 
   const updateUserPss = async (data, user) => {

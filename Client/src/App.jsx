@@ -10,6 +10,10 @@ import Users from "./pages/Users";
 import AddTask from "./pages/AddTask";
 import TaskDetails from "./pages/TaskDetails";
 import EditTask from "./pages/EditTask";
+import CreateUser from "./pages/createUser";
+import UpdateUser from "./pages/Updateuser";
+import UserDetails from "./pages/UserDetails";
+
 
 function App() {
   return (
@@ -28,11 +32,19 @@ function App() {
 
         <Route path="/users" element={<Users />} />
 
+        <Route path="/users/create" element={<CreateUser />} />
+
+        <Route path="/users/:id" element={<UserDetails />} />
+
+        <Route path="/users/:id/edit" element={<UpdateUser />} />
+
         <Route path="/tasks/add" element={<AddTask />} />
 
         <Route path="/tasks/:id" element={<TaskDetails />} />
 
         <Route path="/tasks/:taskId/edit" element={<EditTask />} />
+
+
 
 
       </Routes>
