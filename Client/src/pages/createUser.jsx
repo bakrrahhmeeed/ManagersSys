@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
     FaArrowLeft,
     FaUserPlus,
@@ -8,10 +9,16 @@ import {
 } from "react-icons/fa";
 
 import DashboardLayout from "../layouts/DashboardLayout";
-import { createUser } from "../services/userService";
+
+import {
+    createUser,
+    getUserOptions,
+} from "../services/userService";
+
 import { getDepartments } from "../services/departmentservice";
 
 import "../styles/createUser.css";
+
 
 const initialForm = {
     fullName: "",
@@ -24,214 +31,506 @@ const initialForm = {
     role: "",
 };
 
+
 function CreateUser() {
+
     const navigate = useNavigate();
 
-    const [form, setForm] = useState(initialForm);
-    const [departments, setDepartments] = useState([]);
 
-    const [loadingDepartments, setLoadingDepartments] = useState(true);
+    // =========================================================
+    // FORM
+    // =========================================================
+
+    const [form, setForm] = useState(initialForm);
+
+
+    // =========================================================
+    // OPTIONS
+    // =========================================================
+
+    const [departments, setDepartments] = useState([]);
+    const [branches, setBranches] = useState([]);
+    const [roles, setRoles] = useState([]);
+
+
+    // =========================================================
+    // LOADING
+    // =========================================================
+
+    const [loadingOptions, setLoadingOptions] = useState(true);
     const [saving, setSaving] = useState(false);
+
+
+    // =========================================================
+    // MESSAGES
+    // =========================================================
+
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
+
+    // =========================================================
+    // LOAD DEPARTMENTS + BRANCHES + ROLES
+    // =========================================================
+
     useEffect(() => {
-        const loadDepartments = async () => {
+
+        const loadOptions = async () => {
+
             try {
-                const data = await getDepartments();
+
+                setLoadingOptions(true);
+                setError("");
+
+
+                const [
+                    departmentsData,
+                    userOptions,
+                ] = await Promise.all([
+
+                    getDepartments(),
+
+                    getUserOptions(),
+
+                ]);
+
+
+                // =================================================
+                // DEPARTMENTS
+                // =================================================
 
                 setDepartments(
-                    Array.isArray(data) ? data : []
+                    Array.isArray(departmentsData)
+                        ? departmentsData
+                        : []
                 );
+
+
+                // =================================================
+                // BRANCHES
+                // =================================================
+
+                setBranches(
+                    Array.isArray(
+                        userOptions?.branches
+                    )
+                        ? userOptions.branches
+                        : []
+                );
+
+
+                // =================================================
+                // ROLES
+                // =================================================
+
+                setRoles(
+                    Array.isArray(
+                        userOptions?.roles
+                    )
+                        ? userOptions.roles
+                        : []
+                );
+
+
             } catch (err) {
-                console.error(err);
+
+                console.error(
+                    "Create user options error:",
+                    err
+                );
+
+
+                setError(
+                    err.response?.data?.message ||
+                    err.message ||
+                    "Failed to load form options."
+                );
+
             } finally {
-                setLoadingDepartments(false);
+
+                setLoadingOptions(false);
+
             }
+
         };
 
-        loadDepartments();
+
+        loadOptions();
+
     }, []);
 
+
+    // =========================================================
+    // HANDLE CHANGE
+    // =========================================================
+
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
+
+        const {
+            name,
+            value,
+            type,
+            checked,
+        } = e.target;
+
 
         setForm((prev) => ({
+
             ...prev,
+
             [name]:
                 type === "checkbox"
                     ? checked
                     : value,
+
         }));
+
     };
 
+
+    // =========================================================
+    // SUBMIT
+    // =========================================================
+
     const handleSubmit = async (e) => {
+
         e.preventDefault();
+
 
         setError("");
         setSuccess("");
 
+
+        // =====================================================
+        // VALIDATION
+        // =====================================================
+
         if (!form.fullName.trim()) {
-            setError("Full Name is required.");
+
+            setError(
+                "Full Name is required."
+            );
+
             return;
         }
+
 
         if (!form.userName.trim()) {
-            setError("User Name is required.");
+
+            setError(
+                "User Name is required."
+            );
+
             return;
         }
+
 
         if (!form.Email.trim()) {
-            setError("Email is required.");
+
+            setError(
+                "Email is required."
+            );
+
             return;
         }
 
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.Email)) {
-            setError("Invalid Email.");
+
+        if (
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                form.Email
+            )
+        ) {
+
+            setError(
+                "Invalid Email."
+            );
+
             return;
         }
+
 
         if (!form.Password) {
-            setError("Password is required.");
+
+            setError(
+                "Password is required."
+            );
+
             return;
         }
 
+
         if (form.Password.length < 6) {
+
             setError(
                 "Password must be at least 6 characters."
             );
+
             return;
         }
+
 
         if (!form.departmentId) {
-            setError("Department ID is required.");
+
+            setError(
+                "Please select a Department."
+            );
+
             return;
         }
+
 
         if (!form.branchId) {
-            setError("Branch ID is required.");
+
+            setError(
+                "Please select a Branch."
+            );
+
             return;
         }
+
 
         if (!form.role) {
-            setError("Role ID is required.");
+
+            setError(
+                "Please select a Role."
+            );
+
             return;
         }
 
+
+        // =====================================================
+        // CREATE
+        // =====================================================
+
         try {
+
             setSaving(true);
 
+
             await createUser({
-                fullName: form.fullName.trim(),
-                userName: form.userName.trim(),
-                Email: form.Email.trim(),
-                Password: form.Password,
-                departmentId: Number(form.departmentId),
-                branchId: Number(form.branchId),
-                IsActive: Boolean(form.IsActive),
-                role: Number(form.role),
+
+                fullName:
+                    form.fullName.trim(),
+
+                userName:
+                    form.userName.trim(),
+
+                Email:
+                    form.Email.trim(),
+
+                Password:
+                    form.Password,
+
+                departmentId:
+                    Number(
+                        form.departmentId
+                    ),
+
+                branchId:
+                    Number(
+                        form.branchId
+                    ),
+
+                IsActive:
+                    Boolean(
+                        form.IsActive
+                    ),
+
+                role:
+                    Number(
+                        form.role
+                    ),
+
             });
 
-            setSuccess("User created successfully.");
+
+            setSuccess(
+                "User created successfully."
+            );
+
 
             setTimeout(() => {
+
                 navigate("/users");
+
             }, 700);
 
+
         } catch (err) {
-            console.error("Create user error:", err);
+
+            console.error(
+                "Create user error:",
+                err
+            );
+
 
             setError(
                 err.response?.data?.message ||
                 err.message ||
                 "Failed to create user."
             );
+
         } finally {
+
             setSaving(false);
+
         }
+
     };
 
+
+    // =========================================================
+    // UI
+    // =========================================================
+
     return (
+
         <DashboardLayout>
 
             <div className="create-user-page">
+
+
+                {/* =================================================
+                    BACK
+                ================================================= */}
 
                 <div className="create-user-topbar">
 
                     <button
                         className="create-user-back"
-                        onClick={() => navigate("/users")}
+                        onClick={() =>
+                            navigate("/users")
+                        }
                     >
+
                         <FaArrowLeft />
+
                         Back to Users
+
                     </button>
 
                 </div>
 
+
+                {/* =================================================
+                    CARD
+                ================================================= */}
+
                 <section className="create-user-card">
+
+
+                    {/* HEADER */}
 
                     <div className="create-user-header">
 
                         <div className="create-user-icon">
+
                             <FaUserPlus />
+
                         </div>
 
+
                         <div>
-                            <h1>Create User</h1>
+
+                            <h1>
+                                Create User
+                            </h1>
 
                             <p>
                                 Add a new user to the system.
                             </p>
+
                         </div>
 
                     </div>
 
+
+                    {/* ERROR */}
+
                     {error && (
+
                         <div className="user-form-error">
+
                             {error}
+
                         </div>
+
                     )}
 
+
+                    {/* SUCCESS */}
+
                     {success && (
+
                         <div className="user-form-success">
+
                             {success}
+
                         </div>
+
                     )}
+
+
+                    {/* FORM */}
 
                     <form
                         className="user-form"
                         onSubmit={handleSubmit}
                     >
 
+
                         <div className="user-form-grid">
 
+
+                            {/* FULL NAME */}
+
                             <div className="user-form-group">
+
                                 <label>
                                     Full Name
                                 </label>
 
                                 <input
                                     name="fullName"
-                                    value={form.fullName}
-                                    onChange={handleChange}
+                                    value={
+                                        form.fullName
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     placeholder="Enter full name"
                                 />
+
                             </div>
 
+
+                            {/* USERNAME */}
+
                             <div className="user-form-group">
+
                                 <label>
                                     Username
                                 </label>
 
                                 <input
                                     name="userName"
-                                    value={form.userName}
-                                    onChange={handleChange}
+                                    value={
+                                        form.userName
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     placeholder="Enter username"
                                 />
+
                             </div>
 
+
+                            {/* EMAIL */}
+
                             <div className="user-form-group">
+
                                 <label>
                                     Email
                                 </label>
@@ -239,13 +538,22 @@ function CreateUser() {
                                 <input
                                     type="email"
                                     name="Email"
-                                    value={form.Email}
-                                    onChange={handleChange}
+                                    value={
+                                        form.Email
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     placeholder="Enter email"
                                 />
+
                             </div>
 
+
+                            {/* PASSWORD */}
+
                             <div className="user-form-group">
+
                                 <label>
                                     Password
                                 </label>
@@ -253,30 +561,51 @@ function CreateUser() {
                                 <input
                                     type="password"
                                     name="Password"
-                                    value={form.Password}
-                                    onChange={handleChange}
+                                    value={
+                                        form.Password
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     placeholder="Minimum 6 characters"
                                 />
+
                             </div>
 
+
+                            {/* DEPARTMENT */}
+
                             <div className="user-form-group">
+
                                 <label>
                                     Department
                                 </label>
 
                                 <select
                                     name="departmentId"
-                                    value={form.departmentId}
-                                    onChange={handleChange}
+                                    value={
+                                        form.departmentId
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    disabled={
+                                        loadingOptions
+                                    }
                                 >
+
                                     <option value="">
-                                        {loadingDepartments
+
+                                        {loadingOptions
                                             ? "Loading..."
                                             : "Select Department"}
+
                                     </option>
+
 
                                     {departments.map(
                                         (department) => (
+
                                             <option
                                                 key={
                                                     department.DepartmentID
@@ -285,46 +614,138 @@ function CreateUser() {
                                                     department.DepartmentID
                                                 }
                                             >
-                                                {department.DepartmentName}
+
+                                                {
+                                                    department.DepartmentName
+                                                }
+
                                             </option>
+
                                         )
                                     )}
+
                                 </select>
+
                             </div>
 
+
+                            {/* BRANCH */}
+
                             <div className="user-form-group">
+
                                 <label>
-                                    Branch ID
+                                    Branch
                                 </label>
 
-                                <input
-                                    type="number"
+                                <select
                                     name="branchId"
-                                    value={form.branchId}
-                                    onChange={handleChange}
-                                    placeholder="Enter branch ID"
-                                    min="1"
-                                />
+                                    value={
+                                        form.branchId
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    disabled={
+                                        loadingOptions
+                                    }
+                                >
+
+                                    <option value="">
+
+                                        {loadingOptions
+                                            ? "Loading..."
+                                            : "Select Branch"}
+
+                                    </option>
+
+
+                                    {branches.map(
+                                        (branch) => (
+
+                                            <option
+                                                key={
+                                                    branch.BranchID
+                                                }
+                                                value={
+                                                    branch.BranchID
+                                                }
+                                            >
+
+                                                {
+                                                    branch.BranchName
+                                                }
+
+                                                {branch.City
+                                                    ? ` — ${branch.City}`
+                                                    : ""}
+
+                                            </option>
+
+                                        )
+                                    )}
+
+                                </select>
+
                             </div>
+
+
+                            {/* ROLE */}
 
                             <div className="user-form-group">
+
                                 <label>
-                                    Role ID
+                                    Role
                                 </label>
 
-                                <input
-                                    type="number"
+                                <select
                                     name="role"
-                                    value={form.role}
-                                    onChange={handleChange}
-                                    placeholder="Enter role ID"
-                                    min="1"
-                                />
+                                    value={
+                                        form.role
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    disabled={
+                                        loadingOptions
+                                    }
+                                >
 
-                                <small>
-                                    Enter the RoleID configured in the database.
-                                </small>
+                                    <option value="">
+
+                                        {loadingOptions
+                                            ? "Loading..."
+                                            : "Select Role"}
+
+                                    </option>
+
+
+                                    {roles.map(
+                                        (role) => (
+
+                                            <option
+                                                key={
+                                                    role.RoleID
+                                                }
+                                                value={
+                                                    role.RoleID
+                                                }
+                                            >
+
+                                                {
+                                                    role.RoleName
+                                                }
+
+                                            </option>
+
+                                        )
+                                    )}
+
+                                </select>
+
                             </div>
+
+
+                            {/* STATUS */}
 
                             <div className="user-form-group">
 
@@ -332,13 +753,18 @@ function CreateUser() {
                                     Status
                                 </label>
 
+
                                 <label className="active-toggle">
 
                                     <input
                                         type="checkbox"
                                         name="IsActive"
-                                        checked={form.IsActive}
-                                        onChange={handleChange}
+                                        checked={
+                                            form.IsActive
+                                        }
+                                        onChange={
+                                            handleChange
+                                        }
                                     />
 
                                     <span>
@@ -351,31 +777,49 @@ function CreateUser() {
 
                         </div>
 
+
+                        {/* ACTIONS */}
+
                         <div className="user-form-actions">
+
 
                             <button
                                 type="button"
                                 className="user-cancel-btn"
-                                onClick={() => navigate("/users")}
-                                disabled={saving}
+                                onClick={() =>
+                                    navigate("/users")
+                                }
+                                disabled={
+                                    saving
+                                }
                             >
+
                                 <FaTimes />
+
                                 Cancel
+
                             </button>
+
 
                             <button
                                 type="submit"
                                 className="user-save-btn"
-                                disabled={saving}
+                                disabled={
+                                    saving ||
+                                    loadingOptions
+                                }
                             >
+
                                 <FaSave />
 
                                 {saving
                                     ? "Creating..."
                                     : "Create User"}
+
                             </button>
 
                         </div>
+
 
                     </form>
 
@@ -384,7 +828,10 @@ function CreateUser() {
             </div>
 
         </DashboardLayout>
+
     );
+
 }
+
 
 export default CreateUser;

@@ -80,3 +80,9 @@ export const getUsersByDepartment = async (
 
     return response.data || [];
 };
+
+export const getUserOptions = async () => {
+    const response = await api.get("/users/options");
+
+    return response.data;
+};

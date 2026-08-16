@@ -512,7 +512,6 @@ const getuserById = async (id, user) => {
     };
 };
 
-
   const updateUserPss = async (data, user) => {
 
     const { password, oldPassword } = data;
@@ -578,8 +577,6 @@ WHERE ur.RoleID = 3;
     return result.recordset
   }
 
-
-
   const getUsersByDepartment = async (departmentId) => {
 
     const result = await sql.query`
@@ -604,6 +601,26 @@ WHERE ur.RoleID = 3;
 
 };
 
+const getBranchAndRole = async () => {
+    const [rolesResult, branchesResult] = await Promise.all([
+        sql.query`
+            SELECT RoleID, RoleName
+            FROM Roles
+        `,
+
+        sql.query`
+            SELECT BranchID, BranchName, City
+            FROM Branches
+        `
+    ]);
+
+    return {
+        roles: rolesResult.recordset,
+        branches: branchesResult.recordset
+    };
+};
+
+
   module.exports = {
     getusers,
     addUser,
@@ -612,5 +629,6 @@ WHERE ur.RoleID = 3;
     getuserById,
     updateUserPss,
     getProjectmanagers,
-    getUsersByDepartment
+    getUsersByDepartment,
+    getBranchAndRole
   };

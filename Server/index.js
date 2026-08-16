@@ -24,6 +24,7 @@ const departments = require("./routes/DepartmentRoute")
 
 
 
+
 connectDB();
 
 app.use(cors({

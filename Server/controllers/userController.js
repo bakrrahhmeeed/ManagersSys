@@ -75,24 +75,24 @@ const userService = require("../services/userService")
 
 
 const getUsersByDepartment = async (req, res, next) => {
-
     try {
-
         const users = await userService.getUsersByDepartment(
-
             req.params.departmentId
-
         );
-
         res.status(200).json(users);
-
     } catch (err) {
-
         next(err);
-
     }
-
 };
+
+  const getBranchAndRole = async(req, res , next)=>{
+    try{
+      const result = await userService.getBranchAndRole()
+      res.status(200).json(result)
+    }catch(err){
+      next(err);
+    }
+  }
 
 
   module.exports = {
@@ -103,5 +103,6 @@ const getUsersByDepartment = async (req, res, next) => {
     getuserById,
     updateUserPss,
     getProjectmanagers,
-    getUsersByDepartment
+    getUsersByDepartment,
+    getBranchAndRole
   };

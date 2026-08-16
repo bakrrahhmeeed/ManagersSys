@@ -6,7 +6,7 @@ const updateuservalidation = require("../middleware/updateUserValidation")
 const Roles = require("../constants/roles")
 
 const { 
-    getuser , addUser , updateUser , deleteUser , getuserById , updateUserPss , getProjectmanagers , getUsersByDepartment
+    getuser , addUser , updateUser , deleteUser , getuserById , updateUserPss , getProjectmanagers , getUsersByDepartment , getBranchAndRole
 } = require("../controllers/userController");
 const { getRounds } = require("bcrypt");
 
@@ -15,6 +15,9 @@ router.get("/",authorizeRoles(
     Roles.DEPARTMENT_MANAGER,
     Roles.PMO_MANAGER
 ), getuser);
+
+router.get("/options" , authorizeRoles(Roles.ADMIN , Roles.DEPARTMENT_MANAGER , Roles.SECRETARY , Roles.PROJECT_MANAGER) , getBranchAndRole)
+
 
 router.get("/projectmanagers", getProjectmanagers) 
 
@@ -44,6 +47,7 @@ router.get(
     getUsersByDepartment
 
 );
+
 
 
 module.exports = router;
