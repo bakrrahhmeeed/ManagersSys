@@ -45,16 +45,6 @@ const UserDetails = () => {
 
                 console.log("User Details API:", result);
 
-                /*
-                    Expected API response:
-
-                    {
-                        user: {...},
-                        projects: [...],
-                        tasks: [...]
-                    }
-                */
-
                 setUser(result?.user || null);
                 setProjects(
                     Array.isArray(result?.projects)
@@ -384,7 +374,7 @@ const UserDetails = () => {
                             </span>
 
                             <strong>
-                                #{user.UserID}
+                                {user.UserID}
                             </strong>
 
                         </div>

@@ -1,0 +1,38 @@
+.dashboard-layout {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.dashboard-main {
+  margin-left: 240px;
+  padding-top: 68px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.dashboard-content {
+  width: 100%;
+  min-height: calc(100vh - 68px);
+  padding: 24px 28px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .dashboard-main {
+    margin-left: 210px;
+  }
+
+  .dashboard-content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-main {
+    margin-left: 70px;
+  }
+
+  .dashboard-content {
+    padding: 16px;
+  }
+}

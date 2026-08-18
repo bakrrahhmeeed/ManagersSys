@@ -2,7 +2,6 @@ const sql = require("mssql");
 const Roles = require("../constants/roles");
 
 
-
 const attachProgressToProjects = async (projects) => {
 
     if (!Array.isArray(projects) || projects.length === 0) {
@@ -1028,7 +1027,6 @@ const deleteProject = async (
     };
 
 };
-
 
 module.exports = {
     getprojects,

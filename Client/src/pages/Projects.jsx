@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
     FaFolder,
     FaPlus,
@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 
 import DashboardLayout from "../layouts/DashboardLayout";
+import { AuthContext } from "../context/AuthContext";
 import { getDepartments } from "../services/departmentservice";
 import {
     getProjects,
@@ -36,13 +37,28 @@ const initialFormData = {
     targetEndDate: "",
     projectManagerId: "",
     departmentIds: [],
-    isStrategic: false
+    isStrategic: false,
 };
 
 const PROJECTS_PER_PAGE = 8;
 
 const Projects = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { user } = useContext(AuthContext);
+
+    const role = String(user?.roleName || "").toLowerCase();
+
+    const isAdmin = role === "administrator";
+    const isSecretary = role === "secretary";
+    const isProjectManager = role === "project manager";
+    const isDepartmentManager = role === "department manager";
+
+    const canCreateProject = isAdmin || isSecretary;
+    const canEditProject = isAdmin || isSecretary;
+    const canDeleteProject = isAdmin;
+    const canAddTask =
+        isAdmin || isProjectManager || isDepartmentManager;
 
     const [activeTab, setActiveTab] = useState("all");
 
@@ -60,6 +76,14 @@ const Projects = () => {
     const [currentPage, setCurrentPage] = useState(1);
 
     const [formData, setFormData] = useState(initialFormData);
+
+    useEffect(() => {
+        if (location.pathname === "/projects/add") {
+            setActiveTab("new");
+        } else {
+            setActiveTab("all");
+        }
+    }, [location.pathname]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -88,8 +112,9 @@ const Projects = () => {
     };
 
     const handleCreate = async () => {
+        if (!canCreateProject) return;
+
         try {
-            // Send only fields supported by the current backend/API.
             const payload = {
                 projectName: formData.projectName,
                 projectDescription: formData.projectDescription,
@@ -112,53 +137,48 @@ const Projects = () => {
 
             resetForm();
             setCurrentPage(1);
-            setActiveTab("all");
+            navigate("/projects");
         } catch (error) {
             console.error(error);
             alert("Failed To Create Project");
         }
     };
 
-   useEffect(() => {
-    const fetchData = async () => {
-        setLoading(true);
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
 
-        try {
-            const projectsData = await getProjects();
+            try {
+                const projectsData = await getProjects();
+                setProjects(projectsData);
+            } catch (error) {
+                console.error(error);
+                setProjects([]);
+            }
 
-            
+            try {
+                const departmentsData = await getDepartments();
+                setDepartments(departmentsData);
+            } catch (error) {
+                console.error(error);
+                setDepartments([]);
+            }
 
-            setProjects(projectsData);
-        } catch (error) {
-            
-            setProjects([]);
-        }
+            try {
+                const managersData = await getProjectManagers();
+                setProjectManagers(managersData);
+            } catch (error) {
+                console.error(error);
+                setProjectManagers([]);
+            }
 
-        try {
-            const departmentsData = await getDepartments();
-            setDepartments(departmentsData);
-        } catch (error) {
-            
-            setDepartments([]);
-        }
+            setLoading(false);
+        };
 
-        try {
-            const managersData = await getProjectManagers();
-            setProjectManagers(managersData);
-        } catch (error) {
-           
-            setProjectManagers([]);
-        }
-
-        setLoading(false);
-    };
-
-    fetchData();
-}, []);
+        fetchData();
+    }, []);
 
     const normalizedProjects = useMemo(() => {
-        // getProjects() may return the raw array, Axios response data,
-        // or an object wrapped in data/projects depending on the service.
         if (Array.isArray(projects)) return projects;
         if (Array.isArray(projects?.data)) return projects.data;
         if (Array.isArray(projects?.projects)) return projects.projects;
@@ -168,6 +188,7 @@ const Projects = () => {
         if (Array.isArray(projects?.data?.data)) {
             return projects.data.data;
         }
+
         return [];
     }, [projects]);
 
@@ -183,7 +204,10 @@ const Projects = () => {
         if (!date) return "-";
 
         const parsedDate = new Date(date);
-        if (Number.isNaN(parsedDate.getTime())) return "-";
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return "-";
+        }
 
         return parsedDate.toLocaleDateString("en-US", {
             month: "short",
@@ -233,26 +257,32 @@ const Projects = () => {
         }
     };
 
-const filteredProjects = useMemo(() => {
-    const result = normalizedProjects.filter((project) => {
-        const name = project.ProjectName || "";
-        const status = project.Status || "";
-        const managerId = String(project.ProjectManagerID ?? "");
-        const projectId = String(project.ProjectID ?? "");
+    const filteredProjects = useMemo(() => {
+        const result = normalizedProjects.filter((project) => {
+            const name = project.ProjectName || "";
+            const status = project.Status || "";
+            const managerId = String(project.ProjectManagerID ?? "");
+            const projectId = String(project.ProjectID ?? "");
 
-        const matchesSearch =
-            name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            projectId.includes(searchTerm.trim());
+            const matchesSearch =
+                name
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                projectId.includes(searchTerm.trim());
 
-        const matchesStatus =
-            statusFilter === "All" || status === statusFilter;
+            const matchesStatus =
+                statusFilter === "All" || status === statusFilter;
 
-        const matchesManager =
-            managerFilter === "All" ||
-            managerId === String(managerFilter);
+            const matchesManager =
+                managerFilter === "All" ||
+                managerId === String(managerFilter);
 
-        return matchesSearch && matchesStatus && matchesManager;
-    });
+            return (
+                matchesSearch &&
+                matchesStatus &&
+                matchesManager
+            );
+        });
 
         return [...result].sort((a, b) => {
             if (sortBy === "Progress High") {
@@ -302,7 +332,9 @@ const filteredProjects = useMemo(() => {
 
     const totalPages = Math.max(
         1,
-        Math.ceil(filteredProjects.length / PROJECTS_PER_PAGE)
+        Math.ceil(
+            filteredProjects.length / PROJECTS_PER_PAGE
+        )
     );
 
     const safePage = Math.min(currentPage, totalPages);
@@ -314,69 +346,44 @@ const filteredProjects = useMemo(() => {
 
     const goToPage = (page) => {
         if (page < 1 || page > totalPages) return;
+
         setCurrentPage(page);
     };
 
-const handleMenuAction = (action, project) => {
-    setOpenMenu(null);
+    const handleMenuAction = (action, project) => {
+        setOpenMenu(null);
 
-    if (action === "update") {
-        navigate(`/projects/${project.ProjectID}?edit=true`);
-    }
+        if (action === "update" && canEditProject) {
+            navigate(
+                `/projects/${project.ProjectID}?edit=true`
+            );
+        }
 
-    if (action === "task") {
-        alert(`Add Task to "${project.ProjectName}" will be connected next.`);
-    }
+        if (action === "task" && canAddTask) {
+            navigate(
+                `/tasks/add?projectId=${project.ProjectID}`
+            );
+        }
 
-    if (action === "comment") {
-        alert(
-            `Comments for "${project.ProjectName}" will be connected next.`
-        );
-    }
-};
+        if (action === "comment") {
+            alert(
+                `Comments for "${project.ProjectName}" will be connected next.`
+            );
+        }
+
+        if (action === "delete" && canDeleteProject) {
+            alert(
+                `Delete "${project.ProjectName}" will be connected next.`
+            );
+        }
+    };
 
     return (
         <DashboardLayout>
             <div className="projects-layout">
-                {/* =========================
-                    PROJECT SIDEBAR
-                ========================== */}
-                <aside className="projects-sidebar">
-                    <button
-                        className={`project-tab ${
-                            activeTab === "all" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveTab("all")}
-                    >
-                        <FaFolder />
-                        <span>All</span>
-                    </button>
-
-                    <button
-                        className={`project-tab ${
-                            activeTab === "new" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveTab("new")}
-                    >
-                        <FaPlus />
-                        <span>New Project</span>
-                    </button>
-
-                 
-
-
-                </aside>
-
-                {/* =========================
-                    MAIN CONTENT
-                ========================== */}
                 <main className="projects-main">
-                    {/* =========================
-                        ALL PROJECTS
-                    ========================== */}
                     {activeTab === "all" && (
                         <section className="projects-content">
-
                             <div className="projects-filter-bar">
                                 <div className="project-search">
                                     <FaSearch />
@@ -386,7 +393,9 @@ const handleMenuAction = (action, project) => {
                                         placeholder="Search projects..."
                                         value={searchTerm}
                                         onChange={(e) =>
-                                            setSearchTerm(e.target.value)
+                                            setSearchTerm(
+                                                e.target.value
+                                            )
                                         }
                                     />
                                 </div>
@@ -397,21 +406,27 @@ const handleMenuAction = (action, project) => {
                                     <select
                                         value={statusFilter}
                                         onChange={(e) =>
-                                            setStatusFilter(e.target.value)
+                                            setStatusFilter(
+                                                e.target.value
+                                            )
                                         }
                                     >
                                         <option value="All">
                                             All Status
                                         </option>
+
                                         <option value="Planning">
                                             Planning
                                         </option>
+
                                         <option value="In Progress">
                                             In Progress
                                         </option>
+
                                         <option value="Completed">
                                             Completed
                                         </option>
+
                                         <option value="On Hold">
                                             On Hold
                                         </option>
@@ -419,26 +434,38 @@ const handleMenuAction = (action, project) => {
                                 </div>
 
                                 <div className="project-filter">
-                                    <span>Project Manager</span>
+                                    <span>
+                                        Project Manager
+                                    </span>
 
                                     <select
                                         value={managerFilter}
                                         onChange={(e) =>
-                                            setManagerFilter(e.target.value)
+                                            setManagerFilter(
+                                                e.target.value
+                                            )
                                         }
                                     >
                                         <option value="All">
                                             All Managers
                                         </option>
 
-                                        {projectManagers.map((manager) => (
-                                            <option
-                                                key={manager.UserID}
-                                                value={manager.UserID}
-                                            >
-                                                {manager.FullName}
-                                            </option>
-                                        ))}
+                                        {projectManagers.map(
+                                            (manager) => (
+                                                <option
+                                                    key={
+                                                        manager.UserID
+                                                    }
+                                                    value={
+                                                        manager.UserID
+                                                    }
+                                                >
+                                                    {
+                                                        manager.FullName
+                                                    }
+                                                </option>
+                                            )
+                                        )}
                                     </select>
                                 </div>
 
@@ -448,21 +475,27 @@ const handleMenuAction = (action, project) => {
                                     <select
                                         value={sortBy}
                                         onChange={(e) =>
-                                            setSortBy(e.target.value)
+                                            setSortBy(
+                                                e.target.value
+                                            )
                                         }
                                     >
                                         <option value="Newest First">
                                             Newest First
                                         </option>
+
                                         <option value="Oldest First">
                                             Oldest First
                                         </option>
+
                                         <option value="Progress High">
                                             Progress: High to Low
                                         </option>
+
                                         <option value="Progress Low">
                                             Progress: Low to High
                                         </option>
+
                                         <option value="Due Date">
                                             Due Date
                                         </option>
@@ -482,218 +515,258 @@ const handleMenuAction = (action, project) => {
                             ) : (
                                 <>
                                     <div className="projects-grid">
-                                        {paginatedProjects.length === 0 ? (
+                                        {paginatedProjects.length ===
+                                        0 ? (
                                             <div className="projects-empty">
                                                 <FaFolder />
-                                                <h2>No projects found</h2>
+
+                                                <h2>
+                                                    No projects found
+                                                </h2>
+
                                                 <p>
-                                                    Try changing your search
-                                                    or filters.
+                                                    Try changing your
+                                                    search or filters.
                                                 </p>
                                             </div>
                                         ) : (
-                                            paginatedProjects.map((project) => {
-                                                const progress = Math.min(
-                                                    100,
-                                                    Math.max(
-                                                        0,
-                                                        Number(
-                                                            project.overallProgress ||
-                                                                0
-                                                        )
-                                                    )
-                                                );
-
-                                                const managerName =
-                                                    getManagerName(
-                                                        project.ProjectManagerID
-                                                    );
-
-                                                const initials =
-                                                    managerName !==
-                                                    "Unassigned"
-                                                        ? managerName
-                                                              .split(" ")
-                                                              .map(
-                                                                  (word) =>
-                                                                      word[0]
-                                                              )
-                                                              .slice(0, 2)
-                                                              .join("")
-                                                              .toUpperCase()
-                                                        : "?";
-
-                                                const progressColor =
-                                                    getProgressColor(
-                                                        project.Status
-                                                    );
-
-                                                return (
-                                                    <article
-                                                        className="project-card"
-                                                        key={
-                                                            project.ProjectID
-                                                        }
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/projects/${project.ProjectID}`
-                                                            )
-                                                        }
-                                                    >
-                                                        <div className="project-card-top">
-                                                            <div
-                                                                className={`project-type-icon type-${String(
-                                                                    project.ProjectType ||
-                                                                        ""
+                                            paginatedProjects.map(
+                                                (project) => {
+                                                    const progress =
+                                                        Math.min(
+                                                            100,
+                                                            Math.max(
+                                                                0,
+                                                                Number(
+                                                                    project.overallProgress ||
+                                                                        0
                                                                 )
-                                                                    .toLowerCase()
-                                                                    .replace(
-                                                                        /\s+/g,
-                                                                        "-"
-                                                                    )}`}
-                                                            >
-                                                                {getProjectIcon(
-                                                                    project.ProjectType
-                                                                )}
-                                                            </div>
+                                                            )
+                                                        );
 
-                                                            <div className="project-menu-wrapper">
-                                                                <button
-                                                                    className="project-menu-btn"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
+                                                    const managerName =
+                                                        getManagerName(
+                                                            project.ProjectManagerID
+                                                        );
 
-                                                                        setOpenMenu(
-                                                                            openMenu ===
-                                                                                project.ProjectID
-                                                                                ? null
-                                                                                : project.ProjectID
-                                                                        );
-                                                                    }}
+                                                    const initials =
+                                                        managerName !==
+                                                        "Unassigned"
+                                                            ? managerName
+                                                                  .split(
+                                                                      " "
+                                                                  )
+                                                                  .map(
+                                                                      (
+                                                                          word
+                                                                      ) =>
+                                                                          word[0]
+                                                                  )
+                                                                  .slice(
+                                                                      0,
+                                                                      2
+                                                                  )
+                                                                  .join(
+                                                                      ""
+                                                                  )
+                                                                  .toUpperCase()
+                                                            : "?";
+
+                                                    const progressColor =
+                                                        getProgressColor(
+                                                            project.Status
+                                                        );
+
+                                                    return (
+                                                        <article
+                                                            className="project-card"
+                                                            key={
+                                                                project.ProjectID
+                                                            }
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    `/projects/${project.ProjectID}`
+                                                                )
+                                                            }
+                                                        >
+                                                            <div className="project-card-top">
+                                                                <div
+                                                                    className={`project-type-icon type-${String(
+                                                                        project.ProjectType ||
+                                                                            ""
+                                                                    )
+                                                                        .toLowerCase()
+                                                                        .replace(
+                                                                            /\s+/g,
+                                                                            "-"
+                                                                        )}`}
                                                                 >
-                                                                    <FaEllipsisV />
-                                                                </button>
-
-                                                                {openMenu ===
-                                                                    project.ProjectID && (
-                                                                    <div className="project-actions-menu">
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleMenuAction(
-                                                                                    "update",
-                                                                                    project
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            <FaEdit />
-                                                                            Update
-                                                                        </button>
-
-                                                                        <button
-    onClick={(e) => {
-        e.stopPropagation();
-
-        navigate(
-            `/tasks/add?projectId=${project.ProjectID}`
-        );
-    }}
->
-    <FaTasks />
-    Add Task
-</button>
-
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleMenuAction(
-                                                                                    "comment",
-                                                                                    project
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            <FaComment />
-                                                                            Comment
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="project-card-body">
-                                                            <h2>
-                                                                {
-                                                                    project.ProjectName
-                                                                }
-                                                            </h2>
-                                                            <span className="project-id">
-                                                            ID : {project.ProjectID}
-                                                            </span>     
-
-                                                            <p className="project-description">
-                                                                {project.ProjectDescription ||
-                                                                    "No project description available."}
-                                                            </p>
-
-                                                            <div className="project-manager-info">
-                                                                <div className="project-manager-avatar">
-                                                                    {initials}
+                                                                    {getProjectIcon(
+                                                                        project.ProjectType
+                                                                    )}
                                                                 </div>
 
-                                                                <div>
-                                                                    <strong>
+                                                                <div className="project-menu-wrapper">
+                                                                    <button
+                                                                        className="project-menu-btn"
+                                                                        onClick={(
+                                                                            e
+                                                                        ) => {
+                                                                            e.stopPropagation();
+
+                                                                            setOpenMenu(
+                                                                                openMenu ===
+                                                                                    project.ProjectID
+                                                                                    ? null
+                                                                                    : project.ProjectID
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <FaEllipsisV />
+                                                                    </button>
+
+                                                                    {openMenu ===
+                                                                        project.ProjectID && (
+                                                                        <div className="project-actions-menu">
+{canEditProject && (
+    <button
+        onClick={(e) => {
+            e.stopPropagation();
+
+            navigate(`/projects/${project.ProjectID}/edit`);
+        }}
+    >
+        <FaEdit />
+        Edit
+    </button>
+)}
+
+                                                                            {canAddTask && (
+                                                                                <button
+                                                                                    onClick={(
+                                                                                        e
+                                                                                    ) => {
+                                                                                        e.stopPropagation();
+
+                                                                                        handleMenuAction(
+                                                                                            "task",
+                                                                                            project
+                                                                                        );
+                                                                                    }}
+                                                                                >
+                                                                                    <FaTasks />
+                                                                                    Add
+                                                                                    Task
+                                                                                </button>
+                                                                            )}
+
+                                                                            <button
+                                                                                onClick={(
+                                                                                    e
+                                                                                ) => {
+                                                                                    e.stopPropagation();
+
+                                                                                    handleMenuAction(
+                                                                                        "comment",
+                                                                                        project
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                <FaComment />
+                                                                                Comment
+                                                                            </button>
+
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="project-card-body">
+                                                                <h2>
+                                                                    {
+                                                                        project.ProjectName
+                                                                    }
+                                                                </h2>
+
+                                                                <span className="project-id">
+                                                                    ID :{" "}
+                                                                    {
+                                                                        project.ProjectID
+                                                                    }
+                                                                </span>
+
+                                                                <p className="project-description">
+                                                                    {project.ProjectDescription ||
+                                                                        "No project description available."}
+                                                                </p>
+
+                                                                <div className="project-manager-info">
+                                                                    <div className="project-manager-avatar">
                                                                         {
-                                                                            managerName
+                                                                            initials
                                                                         }
-                                                                    </strong>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <strong>
+                                                                            {
+                                                                                managerName
+                                                                            }
+                                                                        </strong>
+
+                                                                        <span>
+                                                                            Project
+                                                                            Manager
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="project-due-date">
+                                                                    <FaCalendarAlt />
+
                                                                     <span>
-                                                                        Project
-                                                                        Manager
+                                                                        Due:{" "}
+                                                                        <strong>
+                                                                            {formatDate(
+                                                                                project.TargetEndDate
+                                                                            )}
+                                                                        </strong>
                                                                     </span>
                                                                 </div>
                                                             </div>
 
-                                                            <div className="project-due-date">
-                                                                <FaCalendarAlt />
-                                                                <span>
-                                                                    Due:{" "}
-                                                                    <strong>
-                                                                        {formatDate(
-                                                                            project.TargetEndDate
-                                                                        )}
-                                                                    </strong>
+                                                            <div className="project-card-footer">
+                                                                <span
+                                                                    className={getStatusClass(
+                                                                        project.Status
+                                                                    )}
+                                                                >
+                                                                    {project.Status ||
+                                                                        "Unknown"}
                                                                 </span>
+
+                                                                <div
+                                                                    className="project-progress-circle"
+                                                                    style={{
+                                                                        "--progress": `${progress * 3.6}deg`,
+                                                                        "--progress-color":
+                                                                            progressColor,
+                                                                    }}
+                                                                >
+                                                                    <div>
+                                                                        <strong>
+                                                                            {
+                                                                                progress
+                                                                            }
+                                                                            %
+                                                                        </strong>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-
-                                                        <div className="project-card-footer">
-                                                            <span
-                                                                className={getStatusClass(
-                                                                    project.Status
-                                                                )}
-                                                            >
-                                                                {project.Status ||
-                                                                    "Unknown"}
-                                                            </span>
-
-                                                          <div
-                                                                  className="project-progress-circle"
-                                                                         style={{
-                                                                      "--progress": `${progress * 3.6}deg`,
-                                                                 "--progress-color": progressColor,
-                                                                         }}
-                                                                      >
-                                                                <div>
-                                                                <strong>
-                                                                 {progress}
-                                                                 %
-                                                                </strong>
-                                                                </div>
-                                                                </div>
-                                                        </div>
-                                                    </article>
-                                                );
-                                            })
+                                                        </article>
+                                                    );
+                                                }
+                                            )
                                         )}
                                     </div>
 
@@ -701,7 +774,8 @@ const handleMenuAction = (action, project) => {
                                         <span className="projects-results-info">
                                             Showing{" "}
                                             <strong>
-                                                {filteredProjects.length === 0
+                                                {filteredProjects.length ===
+                                                0
                                                     ? 0
                                                     : (safePage - 1) *
                                                           PROJECTS_PER_PAGE +
@@ -717,7 +791,9 @@ const handleMenuAction = (action, project) => {
                                             </strong>{" "}
                                             of{" "}
                                             <strong>
-                                                {filteredProjects.length}
+                                                {
+                                                    filteredProjects.length
+                                                }
                                             </strong>{" "}
                                             projects
                                         </span>
@@ -726,26 +802,36 @@ const handleMenuAction = (action, project) => {
                                             <div className="projects-pagination">
                                                 <button
                                                     onClick={() =>
-                                                        goToPage(safePage - 1)
+                                                        goToPage(
+                                                            safePage - 1
+                                                        )
                                                     }
-                                                    disabled={safePage === 1}
+                                                    disabled={
+                                                        safePage === 1
+                                                    }
                                                 >
                                                     <FaChevronLeft />
                                                 </button>
 
                                                 {Array.from(
-                                                    { length: totalPages },
-                                                    (_, index) => index + 1
+                                                    {
+                                                        length: totalPages,
+                                                    },
+                                                    (_, index) =>
+                                                        index + 1
                                                 ).map((page) => (
                                                     <button
                                                         key={page}
                                                         className={
-                                                            page === safePage
+                                                            page ===
+                                                            safePage
                                                                 ? "active"
                                                                 : ""
                                                         }
                                                         onClick={() =>
-                                                            goToPage(page)
+                                                            goToPage(
+                                                                page
+                                                            )
                                                         }
                                                     >
                                                         {page}
@@ -754,10 +840,13 @@ const handleMenuAction = (action, project) => {
 
                                                 <button
                                                     onClick={() =>
-                                                        goToPage(safePage + 1)
+                                                        goToPage(
+                                                            safePage + 1
+                                                        )
                                                     }
                                                     disabled={
-                                                        safePage === totalPages
+                                                        safePage ===
+                                                        totalPages
                                                     }
                                                 >
                                                     <FaChevronRight />
@@ -770,384 +859,396 @@ const handleMenuAction = (action, project) => {
                         </section>
                     )}
 
-                   {/* =========================
-    NEW PROJECT
-========================== */}
-{activeTab === "new" && (
-    <section className="projects-content new-project-page">
-
-        <button
-            className="back-to-projects"
-            onClick={() => setActiveTab("all")}
-        >
-            ← Back to Projects
-        </button>
-
-        <div className="project-form-card">
-
-            <div className="form-grid">
-
-                {/* =========================
-                    PROJECT NAME
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Project Name{" "}
-                        <span className="required">*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        name="projectName"
-                        value={formData.projectName}
-                        onChange={handleChange}
-                        placeholder="Enter project name"
-                    />
-                </div>
-
-
-                {/* =========================
-                    PROJECT MANAGER
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Project Manager{" "}
-                        <span className="required">*</span>
-                    </label>
-
-                    <select
-                        name="projectManagerId"
-                        value={formData.projectManagerId}
-                        onChange={handleChange}
-                    >
-                        <option value="">
-                            Select project manager
-                        </option>
-
-                        {projectManagers.map((manager) => (
-                            <option
-                                key={manager.UserID}
-                                value={manager.UserID}
+                    {activeTab === "new" && canCreateProject && (
+                        <section className="projects-content new-project-page">
+                            <button
+                                className="back-to-projects"
+                                onClick={() =>
+                                    navigate("/projects")
+                                }
                             >
-                                {manager.FullName}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                                ← Back to Projects
+                            </button>
 
+                            <div className="project-form-card">
+                                <div className="form-grid">
+                                    <div className="form-group">
+                                        <label>
+                                            Project Name{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
-                {/* =========================
-                    PROJECT TYPE
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Project Type{" "}
-                        <span className="required">*</span>
-                    </label>
+                                        <input
+                                            type="text"
+                                            name="projectName"
+                                            value={
+                                                formData.projectName
+                                            }
+                                            onChange={handleChange}
+                                            placeholder="Enter project name"
+                                        />
+                                    </div>
 
-                    <select
-                        name="projectType"
-                        value={formData.projectType}
-                        onChange={handleChange}
-                    >
-                        <option value="">
-                            Select project type
-                        </option>
+                                    <div className="form-group">
+                                        <label>
+                                            Project Manager{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
-                        <option value="Internal">
-                            Internal
-                        </option>
+                                        <select
+                                            name="projectManagerId"
+                                            value={
+                                                formData.projectManagerId
+                                            }
+                                            onChange={handleChange}
+                                        >
+                                            <option value="">
+                                                Select project manager
+                                            </option>
 
-                        <option value="External">
-                            External
-                        </option>
+                                            {projectManagers.map(
+                                                (manager) => (
+                                                    <option
+                                                        key={
+                                                            manager.UserID
+                                                        }
+                                                        value={
+                                                            manager.UserID
+                                                        }
+                                                    >
+                                                        {
+                                                            manager.FullName
+                                                        }
+                                                    </option>
+                                                )
+                                            )}
+                                        </select>
+                                    </div>
 
-                        <option value="Business">
-                            Business
-                        </option>
-                    </select>
-                </div>
+                                    <div className="form-group">
+                                        <label>
+                                            Project Type{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
+                                        <select
+                                            name="projectType"
+                                            value={
+                                                formData.projectType
+                                            }
+                                            onChange={handleChange}
+                                        >
+                                            <option value="">
+                                                Select project type
+                                            </option>
 
-                {/* =========================
-                    PRIORITY
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Priority{" "}
-                        <span className="required">*</span>
-                    </label>
+                                            <option value="Internal">
+                                                Internal
+                                            </option>
 
-                    <select
-                        name="priorityLevel"
-                        value={formData.priorityLevel}
-                        onChange={handleChange}
-                    >
-                        <option value="">
-                            Select priority
-                        </option>
+                                            <option value="External">
+                                                External
+                                            </option>
 
-                        <option value="Low">
-                            Low
-                        </option>
+                                            <option value="Business">
+                                                Business
+                                            </option>
+                                        </select>
+                                    </div>
 
-                        <option value="Medium">
-                            Medium
-                        </option>
+                                    <div className="form-group">
+                                        <label>
+                                            Priority{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
-                        <option value="High">
-                            High
-                        </option>
+                                        <select
+                                            name="priorityLevel"
+                                            value={
+                                                formData.priorityLevel
+                                            }
+                                            onChange={handleChange}
+                                        >
+                                            <option value="">
+                                                Select priority
+                                            </option>
 
-                        <option value="Critical">
-                            Critical
-                        </option>
-                    </select>
-                </div>
+                                            <option value="Low">
+                                                Low
+                                            </option>
 
+                                            <option value="Medium">
+                                                Medium
+                                            </option>
 
-                {/* =========================
-                    DESCRIPTION
-                ========================== */}
-                <div className="form-group full-width">
-                    <label>
-                        Description{" "}
-                        <span className="required">*</span>
-                    </label>
+                                            <option value="High">
+                                                High
+                                            </option>
 
-                    <div className="textarea-wrapper">
+                                            <option value="Critical">
+                                                Critical
+                                            </option>
+                                        </select>
+                                    </div>
 
-                        <textarea
-                            name="projectDescription"
-                            value={formData.projectDescription}
-                            maxLength={500}
-                            onChange={handleChange}
-                            placeholder="Enter project description..."
-                        />
+                                    <div className="form-group full-width">
+                                        <label>
+                                            Description{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
-                        <span className="character-count">
-                            {formData.projectDescription.length} / 500
-                        </span>
+                                        <div className="textarea-wrapper">
+                                            <textarea
+                                                name="projectDescription"
+                                                value={
+                                                    formData.projectDescription
+                                                }
+                                                maxLength={500}
+                                                onChange={
+                                                    handleChange
+                                                }
+                                                placeholder="Enter project description..."
+                                            />
 
-                    </div>
-                </div>
+                                            <span className="character-count">
+                                                {
+                                                    formData
+                                                        .projectDescription
+                                                        .length
+                                                }{" "}
+                                                / 500
+                                            </span>
+                                        </div>
+                                    </div>
 
+                                    <div className="form-group">
+                                        <label>
+                                            Status{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
-                {/* =========================
-                    STATUS
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Status{" "}
-                        <span className="required">*</span>
-                    </label>
+                                        <select
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="">
+                                                Select status
+                                            </option>
 
-                    <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                    >
-                        <option value="">
-                            Select status
-                        </option>
+                                            <option value="Planning">
+                                                Planning
+                                            </option>
 
-                        <option value="Planning">
-                            Planning
-                        </option>
+                                            <option value="Not Started">
+                                                Not Started
+                                            </option>
 
-                        <option value="Not Started">
-                            Not Started
-                        </option>
+                                            <option value="In Progress">
+                                                In Progress
+                                            </option>
 
-                        <option value="In Progress">
-                            In Progress
-                        </option>
+                                            <option value="Completed">
+                                                Completed
+                                            </option>
 
-                        <option value="Completed">
-                            Completed
-                        </option>
+                                            <option value="On Hold">
+                                                On Hold
+                                            </option>
 
-                        <option value="On Hold">
-                            On Hold
-                        </option>
+                                            <option value="Cancelled">
+                                                Cancelled
+                                            </option>
+                                        </select>
+                                    </div>
 
-                        <option value="Cancelled">
-                            Cancelled
-                        </option>
-                    </select>
-                </div>
+                                    <div className="form-group">
+                                        <label>
+                                            Department(s)
+                                        </label>
 
+                                        <div className="department-select-box">
+                                            {departments.length ===
+                                            0 ? (
+                                                <span>
+                                                    No departments
+                                                    available
+                                                </span>
+                                            ) : (
+                                                departments.map(
+                                                    (
+                                                        department
+                                                    ) => (
+                                                        <label
+                                                            key={
+                                                                department.DepartmentID
+                                                            }
+                                                            className="department-checkbox"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                value={
+                                                                    department.DepartmentID
+                                                                }
+                                                                checked={formData.departmentIds.includes(
+                                                                    department.DepartmentID
+                                                                )}
+                                                                onChange={
+                                                                    handleDepartmentChange
+                                                                }
+                                                            />
 
-                {/* =========================
-                    DEPARTMENTS
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Department(s)
-                    </label>
+                                                            {
+                                                                department.DepartmentName
+                                                            }
+                                                        </label>
+                                                    )
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
 
-                    <div className="department-select-box">
+                                    <div className="form-group">
+                                        <label>
+                                            Start Date{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
-                        {departments.length === 0 ? (
-                            <span>
-                                No departments available
-                            </span>
-                        ) : (
-                            departments.map((department) => (
-                                <label
-                                    key={department.DepartmentID}
-                                    className="department-checkbox"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        value={department.DepartmentID}
-                                        checked={formData.departmentIds.includes(
-                                            department.DepartmentID
-                                        )}
-                                        onChange={handleDepartmentChange}
-                                    />
+                                        <div className="date-input-wrapper">
+                                            <input
+                                                type="date"
+                                                name="startDate"
+                                                value={
+                                                    formData.startDate
+                                                }
+                                                onChange={
+                                                    handleChange
+                                                }
+                                            />
 
-                                    {department.DepartmentName}
-                                </label>
-                            ))
-                        )}
+                                            <FaCalendarAlt />
+                                        </div>
+                                    </div>
 
-                    </div>
-                </div>
+                                    <div className="form-group">
+                                        <label>
+                                            Target End Date{" "}
+                                            <span className="required">
+                                                *
+                                            </span>
+                                        </label>
 
+                                        <div className="date-input-wrapper">
+                                            <input
+                                                type="date"
+                                                name="targetEndDate"
+                                                value={
+                                                    formData.targetEndDate
+                                                }
+                                                onChange={
+                                                    handleChange
+                                                }
+                                            />
 
-                {/* =========================
-                    START DATE
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Start Date{" "}
-                        <span className="required">*</span>
-                    </label>
+                                            <FaCalendarAlt />
+                                        </div>
+                                    </div>
 
-                    <div className="date-input-wrapper">
+                                    <div className="form-group">
+                                        <label>
+                                            Strategic Project
+                                        </label>
 
-                        <input
-                            type="date"
-                            name="startDate"
-                            value={formData.startDate}
-                            onChange={handleChange}
-                        />
+                                        <select
+                                            name="isStrategic"
+                                            value={String(
+                                                formData.isStrategic
+                                            )}
+                                            onChange={(e) =>
+                                                setFormData(
+                                                    (prev) => ({
+                                                        ...prev,
+                                                        isStrategic:
+                                                            e.target
+                                                                .value ===
+                                                            "true",
+                                                    })
+                                                )
+                                            }
+                                        >
+                                            <option value="false">
+                                                No
+                                            </option>
 
-                        <FaCalendarAlt />
+                                            <option value="true">
+                                                Yes
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
 
-                    </div>
-                </div>
+                                <div className="project-form-actions">
+                                    <button
+                                        type="button"
+                                        className="project-cancel-btn"
+                                        onClick={() => {
+                                            resetForm();
+                                            navigate(
+                                                "/projects"
+                                            );
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
 
+                                    <button
+                                        type="button"
+                                        className="project-create-btn"
+                                        onClick={handleCreate}
+                                    >
+                                        <FaPlus />
+                                        Create Project
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    )}
 
-                {/* =========================
-                    TARGET END DATE
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Target End Date{" "}
-                        <span className="required">*</span>
-                    </label>
-
-                    <div className="date-input-wrapper">
-
-                        <input
-                            type="date"
-                            name="targetEndDate"
-                            value={formData.targetEndDate}
-                            onChange={handleChange}
-                        />
-
-                        <FaCalendarAlt />
-
-                    </div>
-                </div>
-
-
-                {/* =========================
-                    IS STRATEGIC
-                ========================== */}
-                <div className="form-group">
-                    <label>
-                        Strategic Project
-                    </label>
-
-                    <select
-                        name="isStrategic"
-                        value={String(formData.isStrategic)}
-                        onChange={(e) =>
-                            setFormData((prev) => ({
-                                ...prev,
-                                isStrategic:
-                                    e.target.value === "true",
-                            }))
-                        }
-                    >
-                        <option value="false">
-                            No
-                        </option>
-
-                        <option value="true">
-                            Yes
-                        </option>
-                    </select>
-                </div>
-
-            </div>
-
-
-            {/* =========================
-                ACTIONS
-            ========================== */}
-            <div className="project-form-actions">
-
-                <button
-                    type="button"
-                    className="project-cancel-btn"
-                    onClick={() => {
-                        resetForm();
-                        setActiveTab("all");
-                    }}
-                >
-                    Cancel
-                </button>
-
-                <button
-                    type="button"
-                    className="project-create-btn"
-                    onClick={handleCreate}
-                >
-                    <FaPlus />
-                    Create Project
-                </button>
-
-            </div>
-
-        </div>
-
-    </section>
-)}
-                    {/* =========================
-                        PROJECT DETAIL
-                        Kept untouched for now.
-                    ========================== */}
                     {activeTab === "detail" && (
                         <section className="projects-content">
                             <div className="projects-header">
                                 <div>
                                     <h1>Project Details</h1>
+
                                     <p>
-                                        Select a project to view its details.
+                                        Select a project to view its
+                                        details.
                                     </p>
                                 </div>
                             </div>
 
                             <div className="project-detail-placeholder">
                                 <FaFileAlt />
+
                                 <h2>Project Detail</h2>
+
                                 <p>
-                                    Project details will appear here when a
-                                    project is selected.
+                                    Project details will appear here
+                                    when a project is selected.
                                 </p>
                             </div>
                         </section>

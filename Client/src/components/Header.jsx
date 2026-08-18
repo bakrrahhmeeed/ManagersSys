@@ -1,168 +1,62 @@
-import { useContext } from "react";
-import { NavLink } from "react-router-dom";
-
-import { AuthContext } from "../context/AuthContext";
-
-import {
-  FaBell,
-  FaFolder,
-  FaUsers,
-  FaListCheck,
-  FaCalendarDays,
-} from "react-icons/fa6";
-
+import { FaBell } from "react-icons/fa";
 import "../styles/Header.css";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import alRayaLogo from "../assets/al raya logo.jpeg";
 
 const Header = () => {
   const { user } = useContext(AuthContext);
 
+  const fullName = user?.fullName || "User";
+  const role = user?.roleName || "User";
+
+  const initial = fullName.charAt(0).toUpperCase();
+
+  const handleNotifications = () => {
+    console.log("Notifications clicked");
+  };
+
   return (
     <header className="header">
-
-      {/* =====================================================
-          LEFT SIDE
-      ===================================================== */}
-
       <div className="header-left">
+        <img
 
-        {/* LOGO */}
+          src={alRayaLogo}
 
-        <div className="header-logo">
-          RAYA
-        </div>
+          alt="Al Raya"
 
+          className="header-logo"
 
-        {/* NAVIGATION */}
-
-        <nav className="header-nav">
-
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              `header-nav-link ${
-                isActive ? "active" : ""
-              }`
-            }
-          >
-            <FaCalendarDays />
-
-            <span>
-              Dashboard
-            </span>
-          </NavLink>
-
-
-          <NavLink
-            to="/projects"
-            className={({ isActive }) =>
-              `header-nav-link ${
-                isActive ? "active" : ""
-              }`
-            }
-          >
-            <FaFolder />
-
-            <span>
-              Projects
-            </span>
-          </NavLink>
-
-
-          <NavLink
-            to="/users"
-            className={({ isActive }) =>
-              `header-nav-link ${
-                isActive ? "active" : ""
-              }`
-            }
-          >
-            <FaUsers />
-
-            <span>
-              Users
-            </span>
-          </NavLink>
-
-
-          <NavLink
-            to="/tasks"
-            className={({ isActive }) =>
-              `header-nav-link ${
-                isActive ? "active" : ""
-              }`
-            }
-          >
-            <FaListCheck />
-
-            <span>
-              Tasks
-            </span>
-          </NavLink>
-
-        </nav>
-
+        />
       </div>
 
-
-      {/* =====================================================
-          RIGHT SIDE
-      ===================================================== */}
-
       <div className="header-right">
-
-        {/* NOTIFICATION */}
-
         <button
           type="button"
           className="notification-btn"
-          aria-label="Notifications"
+          onClick={handleNotifications}
+          title="Notifications"
         >
-
           <FaBell />
-
-          <span className="notification-badge">
-            3
-          </span>
-
+          <span className="notification-badge">0</span>
         </button>
 
-
-        {/* USER */}
-
         <div className="header-user">
-
-          <div className="user-avatar">
-            {user?.fullName
-              ? user.fullName
-                  .charAt(0)
-                  .toUpperCase()
-              : "A"}
+          <div className="header-user-avatar">
+            {initial}
           </div>
 
-
-          <div className="user-info">
-
-            <h4>
-              {user?.fullName ||
-                "Abo Bakr Ahmed Hussein"}
-            </h4>
-
-            <span>
-              {user?.roleName ||
-                "Administrator"}
+          <div className="header-user-info">
+            <span className="header-user-name">
+              {fullName}
             </span>
 
+            <span className="header-user-role">
+              {role}
+            </span>
           </div>
-
-
-          <span className="user-arrow">
-            ˅
-          </span>
-
         </div>
-
       </div>
-
     </header>
   );
 };

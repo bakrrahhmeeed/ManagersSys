@@ -40,7 +40,7 @@ const login = async (data) => {
         userName:user.UserName,
         roleId: user.RoleID,
         roleName: user.RoleName,
-        departmentID:user.departmentID
+        departmentID:user.DepartmentID
       },
         process.env.JWT_SECRET,
       {

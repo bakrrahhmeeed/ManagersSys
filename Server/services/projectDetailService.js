@@ -82,17 +82,18 @@ const projectdetails = async (id, user) => {
 
 
 
-    const [
-        project,
-        projectDepartments,
-        stages,
-        tasks,
-        updates,
-        issues,
-        risks,
-        objectives,
-        keyResults
-    ] = await Promise.all([
+const [
+    project,
+    projectDepartments,
+    stages,
+    tasks,
+    updates,
+    comments,
+    issues,
+    risks,
+    objectives,
+    keyResults
+] = await Promise.all([
 
 
 
@@ -187,6 +188,16 @@ const projectdetails = async (id, user) => {
 
 
         sql.query`
+    SELECT
+        c.*,
+        u.FullName AS CreatedByName
+    FROM Comments c
+    LEFT JOIN Users u
+        ON c.CreatedBy = u.UserID
+    WHERE c.ReferenceID = ${id}
+`
+,
+        sql.query`
             SELECT
                 i.*,
                 u.FullName AS AssignedToName
@@ -240,7 +251,17 @@ const projectdetails = async (id, user) => {
                 ON kr.ObjectiveID = o.ObjectiveID
 
             WHERE o.ProjectID = ${id}
-        `
+        `,
+
+        sql.query`
+    SELECT
+        c.*,
+        u.FullName AS CreatedByName
+    FROM Comments c
+    LEFT JOIN Users u
+        ON c.CreatedBy = u.UserID
+    WHERE c.ReferenceID = ${id}
+`
     ]);
 
 
@@ -487,6 +508,9 @@ const projectdetails = async (id, user) => {
         updates:
             updates.recordset,
 
+        comments:
+            comments.recordset,
+
         issues:
             issues.recordset,
 
@@ -494,7 +518,9 @@ const projectdetails = async (id, user) => {
             risks.recordset,
 
         objectives:
-            objectives.recordset
+            objectives.recordset,
+
+
     };
 };
 

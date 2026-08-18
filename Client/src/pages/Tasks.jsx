@@ -1,33 +1,35 @@
-import { useContext,useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import DashboardLayout from "../layouts/DashboardLayout";
 import { getTasks } from "../services/tasksService";
+import { AuthContext } from "../context/AuthContext";
+
 import "../styles/Tasks.css";
 
-import { AuthContext } from "../context/AuthContext";
+
+import {
+    FaPlus,
+    FaSearch,
+    FaTimes,
+    FaEdit,
+    FaTrash,
+    FaEye,
+    FaSyncAlt,
+    FaUsers,
+    FaBuilding,
+    FaCodeBranch,
+} from "react-icons/fa";
 
 function Tasks() {
     const [tasks, setTasks] = useState([]);
+
     const navigate = useNavigate();
+
     const { user } = useContext(AuthContext);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-const handleEditTask = (taskId) => {
-
-    console.log("USER:", user);
-    console.log("ROLE:", user?.roleName);
-
-    if (
-        String(user?.roleName || "").toLowerCase() ===
-        "employee"
-    ) {
-        navigate(`/tasks/${taskId}/edit-employee`);
-    } else {
-        navigate(`/tasks/${taskId}/edit`);
-    }
-};
 
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
@@ -37,7 +39,25 @@ const handleEditTask = (taskId) => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    const tasksPerPage = 10;
+    const tasksPerPage = 12;
+
+    /* =========================================================
+       EDIT TASK
+    ========================================================= */
+
+    const handleEditTask = (taskId) => {
+        console.log("USER:", user);
+        console.log("ROLE:", user?.roleName);
+
+        if (
+            String(user?.roleName || "").toLowerCase() ===
+            "employee"
+        ) {
+            navigate(`/tasks/${taskId}/edit-employee`);
+        } else {
+            navigate(`/tasks/${taskId}/edit`);
+        }
+    };
 
     /* =========================================================
        LOAD TASKS
@@ -109,13 +129,49 @@ const handleEditTask = (taskId) => {
     }, [tasks]);
 
     /* =========================================================
-       FILTER TASKS
+       ASSIGNEE
     ========================================================= */
+
+    function getAssigneeName(task) {
+        if (
+            Array.isArray(task.AssignedTo) &&
+            task.AssignedTo.length > 0
+        ) {
+            return task.AssignedTo
+                .map((assignedUser) => {
+                    if (typeof assignedUser === "string") {
+                        return assignedUser;
+                    }
+
+                    return (
+                        assignedUser?.FullName ||
+                        assignedUser?.fullName ||
+                        ""
+                    );
+                })
+                .filter(Boolean)
+                .join(", ");
+        }
+
+        if (typeof task.AssignedTo === "string") {
+            return task.AssignedTo;
+        }
+
+        return (
+            task.AssignedToName ||
+            task.assigneeName ||
+            "-"
+        );
+    }
+
+
 
     const filteredTasks = useMemo(() => {
         const query = search.trim().toLowerCase();
 
         return tasks.filter((task) => {
+            const assignee = getAssigneeName(task);
+
             const matchesSearch =
                 !query ||
                 String(task.TaskID || "")
@@ -130,7 +186,7 @@ const handleEditTask = (taskId) => {
                 String(task.StageName || "")
                     .toLowerCase()
                     .includes(query) ||
-                getAssigneeName(task)
+                String(assignee || "")
                     .toLowerCase()
                     .includes(query);
 
@@ -206,13 +262,17 @@ const handleEditTask = (taskId) => {
     ).length;
 
     const overdueTasks = tasks.filter((task) => {
-        if (!task.DueDate) return false;
+        if (!task.DueDate) {
+            return false;
+        }
 
         const status = String(
             task.Status || ""
         ).toLowerCase();
 
-        if (status === "completed") return false;
+        if (status === "completed") {
+            return false;
+        }
 
         return new Date(task.DueDate) < new Date();
     }).length;
@@ -234,7 +294,9 @@ const handleEditTask = (taskId) => {
     );
 
     const goToPage = (page) => {
-        if (page < 1 || page > totalPages) return;
+        if (page < 1 || page > totalPages) {
+            return;
+        }
 
         setCurrentPage(page);
     };
@@ -242,34 +304,6 @@ const handleEditTask = (taskId) => {
     /* =========================================================
        HELPERS
     ========================================================= */
-
-    function getAssigneeName(task) {
-        if (
-            Array.isArray(task.AssignedTo) &&
-            task.AssignedTo.length > 0
-        ) {
-            return task.AssignedTo
-                .map((user) => {
-                    if (typeof user === "string") {
-                        return user;
-                    }
-
-                    return (
-                        user?.FullName ||
-                        user?.fullName ||
-                        ""
-                    );
-                })
-                .filter(Boolean)
-                .join(", ");
-        }
-
-        if (typeof task.AssignedTo === "string") {
-            return task.AssignedTo;
-        }
-
-        return "-";
-    }
 
     const getInitials = (name) => {
         if (!name || name === "-") {
@@ -287,7 +321,9 @@ const handleEditTask = (taskId) => {
     };
 
     const formatDate = (date) => {
-        if (!date) return "-";
+        if (!date) {
+            return "-";
+        }
 
         return new Date(date).toLocaleDateString(
             "en-US",
@@ -347,24 +383,6 @@ const handleEditTask = (taskId) => {
         }
     };
 
-    const getProgressClass = (progress) => {
-        if (progress >= 100) {
-            return "task-progress-completed";
-        }
-
-        if (progress >= 50) {
-            return "task-progress-good";
-        }
-
-        if (progress > 0) {
-            return "task-progress-started";
-        }
-
-        return "task-progress-empty";
-    };
-
-
-
     /* =========================================================
        CLEAR FILTERS
     ========================================================= */
@@ -383,7 +401,6 @@ const handleEditTask = (taskId) => {
         priorityFilter !== "All" ||
         projectFilter !== "All" ||
         stageFilter !== "All";
-
 
     /* =========================================================
        LOADING
@@ -415,9 +432,7 @@ const handleEditTask = (taskId) => {
 
                     <p>{error}</p>
 
-                    <button
-                        onClick={loadTasks}
-                    >
+                    <button onClick={loadTasks}>
                         Try Again
                     </button>
                 </div>
@@ -448,13 +463,15 @@ const handleEditTask = (taskId) => {
                     </div>
 
                     <button
-    type="button"
-    className="add-task-btn"
-    onClick={() => navigate("/tasks/add")}
->
-    <span>+</span>
-    Add Task
-</button>
+                        type="button"
+                        className="add-task-btn"
+                        onClick={() =>
+                            navigate("/tasks/add")
+                        }
+                    >
+                        <span><FaPlus/></span>
+                        Add Task
+                    </button>
 
                 </div>
 
@@ -468,7 +485,7 @@ const handleEditTask = (taskId) => {
                     <div className="tasks-search">
 
                         <span className="tasks-search-icon">
-                            ⌕
+                            <FaSearch/>
                         </span>
 
                         <input
@@ -484,6 +501,7 @@ const handleEditTask = (taskId) => {
 
                         {search && (
                             <button
+                                type="button"
                                 className="tasks-search-clear"
                                 onClick={() =>
                                     setSearch("")
@@ -597,6 +615,7 @@ const handleEditTask = (taskId) => {
 
 
                     <button
+                        type="button"
                         className="clear-filters-btn"
                         onClick={clearFilters}
                         disabled={!hasActiveFilters}
@@ -607,10 +626,6 @@ const handleEditTask = (taskId) => {
 
                 </section>
 
-
-                {/* =================================================
-                    STATISTICS
-                ================================================= */}
 
                 <section className="tasks-statistics">
 
@@ -711,419 +726,384 @@ const handleEditTask = (taskId) => {
                 </section>
 
 
-                {/* =================================================
-                    TABLE
-                ================================================= */}
 
-                <section className="tasks-table-panel">
+                <section className="tasks-cards-panel">
 
-                    <div className="tasks-table-wrapper">
+                    {currentTasks.length === 0 ? (
 
-                        <table className="tasks-table">
+                        <div className="tasks-empty">
+                            <strong>
+                                No tasks found
+                            </strong>
 
-                            <thead>
-                                <tr>
-
-                                    <th>
-                                        Task ID
-                                    </th>
-
-                                    <th>
-                                        Task Title
-                                    </th>
-
-                                    <th>
-                                        Project
-                                    </th>
-
-                                    <th>
-                                        Stage
-                                    </th>
-
-                                    <th>
-                                        Assignee
-                                    </th>
-
-                                    <th>
-                                        Priority
-                                    </th>
-
-                                    <th>
-                                        Status
-                                    </th>
-
-                                    <th>
-                                        Department
-                                    </th>
-
-                                    <th>
-                                        Due Date
-                                    </th>
-
-                                    <th>
-                                        Actions
-                                    </th>
-
-                                </tr>
-                            </thead>
-
-
-                            <tbody>
-
-                                {currentTasks.length ===
-                                0 ? (
-
-                                    <tr>
-
-                                        <td
-                                            colSpan="10"
-                                            className="tasks-empty"
-                                        >
-                                            <strong>
-                                                No tasks found
-                                            </strong>
-
-                                            <span>
-                                                Try changing your search or filters.
-                                            </span>
-                                        </td>
-
-                                    </tr>
-
-                                ) : (
-
-                                    currentTasks.map(
-                                        (task) => {
-
-                                            const progress = Math.min(
-                                                100,
-                                                Math.max(
-                                                    0,
-                                                    Number(
-                                                        task.ProgressPercent ||
-                                                        0
-                                                    )
-                                                )
-                                            );
-
-                                            const assignee =
-                                                getAssigneeName(
-                                                    task
-                                                );
-
-                                            return (
-                                                <tr
-                                                    key={
-                                                        task.TaskID
-                                                    }
-                                                >
-
-                                                    {/* TASK ID */}
-
-                                                    <td>
-                                                        <span className="task-id">
-                                                            #
-                                                            {
-                                                                task.TaskID
-                                                            }
-                                                        </span>
-                                                    </td>
-
-
-                                                    {/* TASK TITLE */}
-
-                                                    <td>
-
-                                                        <div className="task-title-cell">
-
-                                                            <strong
-                                                                title={
-                                                                    task.TaskTitle
-                                                                }
-                                                            >
-                                                                {
-                                                                    task.TaskTitle ||
-                                                                    "-"
-                                                                }
-                                                            </strong>
-
-                                                            {task.TaskDescription && (
-                                                                <span
-                                                                    title={
-                                                                        task.TaskDescription
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        task.TaskDescription
-                                                                    }
-                                                                </span>
-                                                            )}
-
-                                                        </div>
-
-                                                    </td>
-
-
-                                                    {/* PROJECT */}
-
-                                                    <td>
-                                                        <span className="task-project-name">
-                                                            {
-                                                                task.ProjectName ||
-                                                                "-"
-                                                            }
-                                                        </span>
-                                                    </td>
-
-
-                                                    {/* STAGE */}
-
-                                                    <td>
-                                                        <span className="task-stage-name">
-                                                            {
-                                                                task.StageName ||
-                                                                "-"
-                                                            }
-                                                        </span>
-                                                    </td>
-
-{/* ASSIGNEE */}
-
-<td>
-    <div className="task-assignee">
-
-        <div className="task-avatar">
-            {getInitials(task.AssignedToName)}
-        </div>
-
-        <span title={task.AssignedToName}>
-            {task.AssignedToName || "-"}
-        </span>
-
-    </div>
-</td>
-
-
-                                                    {/* PRIORITY */}
-
-                                                    <td>
-
-                                                        <span
-                                                            className={`task-priority ${getPriorityClass(
-                                                                task.PriorityLevel
-                                                            )}`}
-                                                        >
-                                                            {
-                                                                task.PriorityLevel ||
-                                                                "-"
-                                                            }
-                                                        </span>
-
-                                                    </td>
-
-
-                                                    {/* STATUS */}
-
-                                                    <td>
-
-                                                        <span
-                                                            className={`task-status ${getStatusClass(
-                                                                task.Status
-                                                            )}`}
-                                                        >
-                                                            {
-                                                                task.Status ||
-                                                                "-"
-                                                            }
-                                                        </span>
-
-                                                    </td>
-
-
-                                                   
-
-{/* DEPARTMENT */}
-
-<td>
-    <div className="task-department-cell">
-        <span>{task.DepartmentName}</span>
-    </div>
-</td>
-
-
-                                                    {/* DUE DATE */}
-
-                                                    <td>
-
-                                                        <span
-                                                            className={
-                                                                task.DueDate &&
-                                                                new Date(
-                                                                    task.DueDate
-                                                                ) <
-                                                                    new Date() &&
-                                                                String(
-                                                                    task.Status ||
-                                                                    ""
-                                                                ).toLowerCase() !==
-                                                                    "completed"
-                                                                    ? "task-due-overdue"
-                                                                    : "task-due-date"
-                                                            }
-                                                        >
-                                                            {
-                                                                formatDate(
-                                                                    task.DueDate
-                                                                )
-                                                            }
-                                                        </span>
-
-                                                    </td>
-
-
-                                                    {/* ACTIONS */}
-
-                                                    <td>
-
-                                                        <div className="task-actions">
-
-                                                            <button
-    type="button"
-    title="View task"
-    className="task-action-btn"
-    onClick={() => {
-        navigate(`/tasks/${task.TaskID}`);
-    }}
->
-    👁
-</button>
-
-<button
-
-    type="button"
-
-    onClick={() =>
-
-        handleEditTask(task.TaskID)
-
-    }
-
-    title="Edit task"
-
-    className="task-action-btn"
-
->
-                                                                ✎
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                title="Delete task"
-                                                                className="task-action-btn delete"
-                                                            >
-                                                                🗑
-                                                            </button>
-
-                                                        </div>
-
-                                                    </td>
-
-                                                </tr>
-                                            );
-                                        }
-                                    )
-
-                                )}
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-
-                    {/* =================================================
-                        TABLE FOOTER
-                    ================================================= */}
-
-                    <div className="tasks-table-footer">
-
-                        <span>
-                            {filteredTasks.length === 0
-                                ? "Showing 0 tasks"
-                                : `Showing ${
-                                      startIndex + 1
-                                  } to ${Math.min(
-                                      startIndex +
-                                          tasksPerPage,
-                                      filteredTasks.length
-                                  )} of ${
-                                      filteredTasks.length
-                                  } tasks`}
-                        </span>
-
-
-                        <div className="tasks-pagination">
-
-                            <button
-                                onClick={() =>
-                                    goToPage(
-                                        currentPage - 1
-                                    )
-                                }
-                                disabled={
-                                    currentPage === 1
-                                }
-                            >
-                                ‹
-                            </button>
-
-
-                            {Array.from(
-                                {
-                                    length: totalPages,
-                                },
-                                (_, index) => (
-                                    <button
-                                        key={index + 1}
-                                        className={
-                                            currentPage ===
-                                            index + 1
-                                                ? "active"
-                                                : ""
-                                        }
-                                        onClick={() =>
-                                            goToPage(
-                                                index + 1
-                                            )
-                                        }
-                                    >
-                                        {index + 1}
-                                    </button>
-                                )
-                            )}
-
-
-                            <button
-                                onClick={() =>
-                                    goToPage(
-                                        currentPage + 1
-                                    )
-                                }
-                                disabled={
-                                    currentPage ===
-                                    totalPages ||
-                                    totalPages === 0
-                                }
-                            >
-                                ›
-                            </button>
-
+                            <span>
+                                Try changing your search
+                                or filters.
+                            </span>
                         </div>
 
-                    </div>
+                    ) : (
+
+                        <div className="tasks-cards-grid">
+
+                            {currentTasks.map((task) => {
+
+                                const assignee =
+                                    getAssigneeName(task);
+
+                                const isOverdue =
+                                    task.DueDate &&
+                                    new Date(task.DueDate) <
+                                        new Date() &&
+                                    String(
+                                        task.Status || ""
+                                    ).toLowerCase() !==
+                                        "completed";
+
+                                return (
+                                    <article
+                                        className="task-card"
+                                        key={task.TaskID}
+                                    >
+
+                                        {/* CARD HEADER */}
+
+                                        <div className="task-card-header">
+
+                                            <span className="task-card-id">
+                                                #{task.TaskID}
+                                            </span>
+
+                                            <div className="task-card-actions">
+
+                                                <button
+                                                    type="button"
+                                                    title="View task"
+                                                    className="task-action-btn"
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/tasks/${task.TaskID}`
+                                                        )
+                                                    }
+                                                >
+                                                    <FaEye/>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    title="Edit task"
+                                                    className="task-action-btn edit"
+                                                    onClick={() =>
+                                                        handleEditTask(
+                                                            task.TaskID
+                                                        )
+                                                    }
+                                                >
+                                                    <FaEdit/>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    title="Delete task"
+                                                    className="task-action-btn delete"
+                                                >
+                                                    <FaTrash />
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+
+                    
+
+                                        <div className="task-card-title-section">
+
+                                            <h3
+                                                title={
+                                                    task.TaskTitle
+                                                }
+                                            >
+                                                {
+                                                    task.TaskTitle ||
+                                                    "-"
+                                                }
+                                            </h3>
+
+                                            {task.TaskDescription && (
+                                                <p
+                                                    title={
+                                                        task.TaskDescription
+                                                    }
+                                                >
+                                                    {
+                                                        task.TaskDescription
+                                                    }
+                                                </p>
+                                            )}
+
+                                        </div>
+
+
+                                        {/* PROJECT */}
+
+                                        <div className="task-card-info">
+
+                                            <div className="task-info-row">
+
+                                                <span className="task-info-label">
+                                                    Project
+                                                </span>
+
+                                                <strong
+                                                    title={
+                                                        task.ProjectName
+                                                    }
+                                                >
+                                                    {
+                                                        task.ProjectName ||
+                                                        "-"
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+
+                                            <div className="task-info-row">
+
+                                                <span className="task-info-label">
+                                                    Stage
+                                                </span>
+
+                                                <strong
+                                                    title={
+                                                        task.StageName
+                                                    }
+                                                >
+                                                    {
+                                                        task.StageName ||
+                                                        "-"
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+
+                                            <div className="task-info-row">
+
+                                                <span className="task-info-label">
+                                                    Department
+                                                </span>
+
+                                                <strong
+                                                    title={
+                                                        task.DepartmentName
+                                                    }
+                                                >
+                                                    {
+                                                        task.DepartmentName ||
+                                                        "-"
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        {/* ASSIGNEE */}
+
+                                        <div className="task-card-assignee">
+
+                                            <div className="task-avatar">
+                                                {getInitials(
+                                                    assignee
+                                                )}
+                                            </div>
+
+                                            <div className="task-assignee-info">
+
+                                                <span>
+                                                    Assignee
+                                                </span>
+
+                                                <strong
+                                                    title={
+                                                        assignee
+                                                    }
+                                                >
+                                                    {
+                                                        assignee ||
+                                                        "-"
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        {/* PRIORITY + STATUS */}
+
+                                        <div className="task-card-meta">
+
+                                            <div>
+
+                                                <span className="task-meta-label">
+                                                    Priority
+                                                </span>
+
+                                                <span
+                                                    className={`task-priority ${getPriorityClass(
+                                                        task.PriorityLevel
+                                                    )}`}
+                                                >
+                                                    {
+                                                        task.PriorityLevel ||
+                                                        "-"
+                                                    }
+                                                </span>
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <span className="task-meta-label">
+                                                    Status
+                                                </span>
+
+                                                <span
+                                                    className={`task-status ${getStatusClass(
+                                                        task.Status
+                                                    )}`}
+                                                >
+                                                    {
+                                                        task.Status ||
+                                                        "-"
+                                                    }
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        {/* DUE DATE */}
+
+                                        <div
+                                            className={
+                                                isOverdue
+                                                    ? "task-card-due overdue"
+                                                    : "task-card-due"
+                                            }
+                                        >
+
+                                            <span>
+                                                Due Date
+                                            </span>
+
+                                            <strong>
+                                                {formatDate(
+                                                    task.DueDate
+                                                )}
+                                            </strong>
+
+                                        </div>
+
+                                    </article>
+                                );
+                            })}
+
+                        </div>
+                    )}
 
                 </section>
+
+
+                {/* =================================================
+                    FOOTER
+                ================================================= */}
+
+                <div className="tasks-table-footer">
+
+                    <span>
+                        {filteredTasks.length === 0
+                            ? "Showing 0 tasks"
+                            : `Showing ${
+                                  startIndex + 1
+                              } to ${Math.min(
+                                  startIndex +
+                                      tasksPerPage,
+                                  filteredTasks.length
+                              )} of ${
+                                  filteredTasks.length
+                              } tasks`}
+                    </span>
+
+
+                    <div className="tasks-pagination">
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                goToPage(
+                                    currentPage - 1
+                                )
+                            }
+                            disabled={
+                                currentPage === 1
+                            }
+                        >
+                            ‹
+                        </button>
+
+
+                        {Array.from(
+                            {
+                                length: totalPages,
+                            },
+                            (_, index) => (
+                                <button
+                                    type="button"
+                                    key={index + 1}
+                                    className={
+                                        currentPage ===
+                                        index + 1
+                                            ? "active"
+                                            : ""
+                                    }
+                                    onClick={() =>
+                                        goToPage(
+                                            index + 1
+                                        )
+                                    }
+                                >
+                                    {index + 1}
+                                </button>
+                            )
+                        )}
+
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                goToPage(
+                                    currentPage + 1
+                                )
+                            }
+                            disabled={
+                                currentPage ===
+                                    totalPages ||
+                                totalPages === 0
+                            }
+                        >
+                            ›
+                        </button>
+
+                    </div>
+
+                </div>
 
             </div>
         </DashboardLayout>

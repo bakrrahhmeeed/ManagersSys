@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
     FaArrowLeft,
     FaCalendarAlt,
@@ -19,226 +19,141 @@ import {
 } from "react-icons/fa";
 
 import Header from "../components/Header";
-import { getDepartments } from "../services/departmentservice";
-import { getProjectManagers } from "../services/projectService";
-import { updateProject } from "../services/projectDetailsService";
 import "../styles/ProjectDetails.css";
 
 const ProjectDetails = () => {
     const { projectId } = useParams();
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const isEditing = searchParams.get("edit") === "true";
+
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeSection, setActiveSection] = useState("overview");
 
-    const [editForm, setEditForm] = useState({
-    projectName: "",
-    projectDescription: "",
-    projectType: "",
-    priorityLevel: "",
-    status: "",
-    targetEndDate: "",
-    sponsorId: "",
-    projectManagerId: "",
-    departmentIds: [],
-    isStrategic: false,
-});
-
-const [saving, setSaving] = useState(false);
-    const [departments, setDepartments] = useState([]);
-    const [projectManagers, setProjectManagers] = useState([]);
-
-    const fetchProjectDetails = async () => {
-        try {
-            setLoading(true);
-            setError("");
-
-            const token = localStorage.getItem("token");
-
-            const response = await fetch(
-                `http://localhost:3001/api/project/${projectId}/details`,
-                {
-                    method: "GET",
-                    headers: {
-                        Accept: "application/json",
-                        ...(token
-                            ? { Authorization: `Bearer ${token}` }
-                            : {}),
-                    },
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message || "Failed to load project details."
-                );
-            }
-
-            setData(result);
-        } catch (err) {
-            console.error("Project details error:", err);
-            setError(err.message || "Failed to load project details.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchProjectDetails = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const token = localStorage.getItem("token");
+
+                const response = await fetch(
+                    `http://localhost:3001/api/project/${projectId}/details`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Accept: "application/json",
+                            ...(token
+                                ? { Authorization: `Bearer ${token}` }
+                                : {}),
+                        },
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.message || "Failed to load project details."
+                    );
+                }
+
+                setData(result);
+            } catch (err) {
+                console.error("Project details error:", err);
+                setError(err.message || "Failed to load project details.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
         if (projectId) {
             fetchProjectDetails();
         }
     }, [projectId]);
 
-    useEffect(() => {
-        const loadEditOptions = async () => {
-            try {
-                const [departmentsData, managersData] = await Promise.all([
-                    getDepartments(),
-                    getProjectManagers(),
-                ]);
-
-                setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
-                setProjectManagers(Array.isArray(managersData) ? managersData : []);
-            } catch (err) {
-                console.error("Failed to load edit options:", err);
-            }
-        };
-
-        loadEditOptions();
-    }, []);
-
     const project = data?.project;
+
+    const getCurrentUserRole = () => {
+        try {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                const storedRole = user.roleName || "";
+                if (storedRole) return storedRole;
+            }
+
+            const token = localStorage.getItem("token");
+            if (!token) return "";
+
+            const tokenPart = token.split(".")[1];
+            if (!tokenPart) return "";
+
+            const base64 = tokenPart
+                .replace(/-/g, "+")
+                .replace(/_/g, "/")
+                .padEnd(Math.ceil(tokenPart.length / 4) * 4, "=");
+
+            const payload = JSON.parse(atob(base64));
+
+            return payload.roleName || "";
+        } catch {
+            return "";
+        }
+    };
+
+    const currentUserRole = getCurrentUserRole();
+    const canEditProject = [
+        "administrator",
+        "secretary",
+    ].includes(String(currentUserRole).trim().toLowerCase());
     const stages = data?.stages || [];
     const updates = data?.updates || [];
     const issues = data?.issues || [];
     const risks = data?.risks || [];
     const objectives = data?.objectives || [];
+    const comments = data?.comments || [];
 
-    useEffect(() => {
-        if (!project) return;
-
-        // The project details API should return the departments linked to
-        // this project in `projectDepartments`. We keep a couple of fallbacks
-        // so the form also works if the API uses a different property name.
-        const linkedDepartments =
-            data?.projectDepartments ||
-            project.projectDepartments ||
-            project.ProjectDepartments ||
-            [];
-
-        const linkedDepartmentIds = Array.isArray(linkedDepartments)
-            ? linkedDepartments
-                  .map((department) =>
-                      Number(
-                          department.DepartmentID ??
-                              department.departmentId ??
-                              department.id ??
-                              department
-                      )
-                  )
-                  .filter(Number.isFinite)
-            : [];
-
-        setEditForm({
-            projectName: project.ProjectName || "",
-            projectDescription: project.ProjectDescription || "",
-            projectType: project.ProjectType || "",
-            priorityLevel: project.PriorityLevel || "",
-            status: project.Status || "",
-            targetEndDate: project.TargetEndDate
-                ? String(project.TargetEndDate).slice(0, 10)
-                : "",
-            sponsorId: project.SponsorID || "",
-            projectManagerId: project.ProjectManagerID || "",
-            departmentIds: linkedDepartmentIds,
-            isStrategic: Boolean(project.IsStrategic),
-        });
-    }, [project, data?.projectDepartments]);
-
-    // =========================================================
-    // CALCULATED VALUES FROM PROJECT DETAILS API
-    // =========================================================
-    // The API now calculates project statistics and progress.
-    // Keep local fallbacks only for compatibility with older responses.
-
-    const totalStages = Number(
-        project?.totalStages ?? stages.length
+    const totalTasks = useMemo(
+        () =>
+            stages.reduce(
+                (total, stage) => total + (stage.tasks?.length || 0),
+                0
+            ),
+        [stages]
     );
 
-    const completedStages = Number(
-        project?.completedStages ??
-        stages.filter(
-            (stage) => stage.Status === "Completed"
-        ).length
+    const completedTasks = useMemo(
+        () =>
+            stages.reduce(
+                (total, stage) =>
+                    total +
+                    (stage.tasks || []).filter(
+                        (task) => task.Status === "Completed"
+                    ).length,
+                0
+            ),
+        [stages]
     );
 
-    const totalTasks = Number(
-        project?.totalTasks ??
-        stages.reduce(
-            (total, stage) =>
-                total + (stage.tasks?.length || 0),
-            0
-        )
-    );
+    const completedStages = stages.filter(
+        (stage) => stage.Status === "Completed"
+    ).length;
 
-    const completedTasks = Number(
-        project?.completedTasks ??
-        stages.reduce(
-            (total, stage) =>
-                total +
-                (stage.tasks || []).filter(
-                    (task) => task.Status === "Completed"
-                ).length,
-            0
-        )
-    );
+    const openIssues = issues.filter(
+        (issue) => issue.Status !== "Resolved"
+    ).length;
 
-    const totalIssues = Number(
-        project?.totalIssues ?? issues.length
-    );
+    const highPriorityRisks = risks.filter(
+        (risk) =>
+            risk.RiskLevel === "High" || risk.ImpactLevel === "High"
+    ).length;
 
-    const openIssues = Number(
-        project?.openIssues ??
-        issues.filter(
-            (issue) =>
-                issue.Status !== "Resolved" &&
-                issue.Status !== "Closed"
-        ).length
-    );
-
-    const totalRisks = Number(
-        project?.totalRisks ?? risks.length
-    );
-
-    const highPriorityRisks = Number(
-        project?.highPriorityRisks ??
-        risks.filter(
-            (risk) =>
-                risk.RiskLevel === "High" ||
-                risk.ImpactLevel === "High"
-        ).length
-    );
-
-    const totalObjectives = Number(
-        project?.totalObjectives ?? objectives.length
-    );
-
-    const totalKeyResults = Number(
-        project?.totalKeyResults ??
-        objectives.reduce(
-            (total, objective) =>
-                total + (objective.keyResults?.length || 0),
-            0
-        )
-    );
-
-    const overallProgress = Number(
-        project?.overallProgress ?? 0
+    const totalKeyResults = objectives.reduce(
+        (total, objective) =>
+            total + (objective.keyResults?.length || 0),
+        0
     );
 
     const formatDate = (date) => {
@@ -267,79 +182,6 @@ const [saving, setSaving] = useState(false);
 
     const getPriorityClass = (priority) =>
         priority ? priority.toLowerCase().replace(/\s+/g, "-") : "";
-
-    const handleEditChange = (e) => {
-        const { name, value } = e.target;
-
-        setEditForm((prev) => ({
-            ...prev,
-            [name]: name === "isStrategic" ? value === "true" : value,
-        }));
-    };
-
-  const handleUpdateProject = async (e) => {
-    e.preventDefault();
-
-    try {
-        setSaving(true);
-        setError("");
-
-        await updateProject(projectId, editForm);
-
-        await fetchProjectDetails();
-
-        setSearchParams({});
-    } catch (err) {
-        console.error("Update project error:", err);
-
-        setError(
-            err.response?.data?.message ||
-            err.message ||
-            "Failed to update project."
-        );
-    } finally {
-        setSaving(false);
-    }
-};
-    const cancelEdit = () => {
-        if (project) {
-            setEditForm({
-                projectName: project.ProjectName || "",
-                projectDescription: project.ProjectDescription || "",
-                projectType: project.ProjectType || "",
-                priorityLevel: project.PriorityLevel || "",
-                status: project.Status || "",
-                targetEndDate: project.TargetEndDate
-                    ? String(project.TargetEndDate).slice(0, 10)
-                    : "",
-                sponsorId: project.SponsorID || "",
-                projectManagerId: project.ProjectManagerID || "",
-                departmentIds: (() => {
-                    const linkedDepartments =
-                        data?.projectDepartments ||
-                        project.projectDepartments ||
-                        project.ProjectDepartments ||
-                        [];
-
-                    if (!Array.isArray(linkedDepartments)) return [];
-
-                    return linkedDepartments
-                        .map((department) =>
-                            Number(
-                                department.DepartmentID ??
-                                    department.departmentId ??
-                                    department.id ??
-                                    department
-                            )
-                        )
-                        .filter(Number.isFinite);
-                })(),
-                isStrategic: Boolean(project.IsStrategic),
-            });
-        }
-
-        setSearchParams({});
-    };
 
     const scrollToSection = (id) => {
         setActiveSection(id);
@@ -393,7 +235,7 @@ const [saving, setSaving] = useState(false);
                         </div>
 
                         <div class="report-grid report-grid-4">
-                            <div><span>Progress</span><strong>${stage.progress ?? 0}%</strong></div>
+                            <div><span>Progress</span><strong>${stage.progress || 0}%</strong></div>
                             <div><span>Start Date</span><strong>${escapeHtml(formatDate(stage.StartDate))}</strong></div>
                             <div><span>End Date</span><strong>${escapeHtml(formatDate(stage.EndDate))}</strong></div>
                             <div><span>Tasks</span><strong>${stage.tasks?.length || 0}</strong></div>
@@ -432,6 +274,18 @@ const [saving, setSaving] = useState(false);
                 </div>
             `).join("")
             : '<p class="muted">No updates available.</p>';
+
+        const reportComments = comments.length
+            ? comments.map(comment => `
+                <div class="list-item">
+                    <div class="list-item-head">
+                        <strong>${escapeHtml(comment.CreatedByName || `User #${comment.CreatedBy}`)}</strong>
+                        <span>${escapeHtml(formatDate(comment.CreatedAt))}</span>
+                    </div>
+                    <p>${escapeHtml(comment.CommentText || comment.Comment || comment.Content || comment.Description || "")}</p>
+                </div>
+            `).join("")
+            : '<p class="muted">No comments available.</p>';
 
         const reportIssues = issues.length
             ? issues.map(issue => `
@@ -556,7 +410,7 @@ const [saving, setSaving] = useState(false);
             <div><span>Project Manager</span><strong>${escapeHtml(project.ProjectManagerName || `User #${project.ProjectManagerID}`)}</strong></div>
             <div><span>Project Type</span><strong>${escapeHtml(project.ProjectType)}</strong></div>
             <div><span>Priority</span><strong>${escapeHtml(project.PriorityLevel)}</strong></div>
-            <div><span>Overall Progress</span><strong>${project.overallProgress ?? 0}%</strong></div>
+            <div><span>Overall Progress</span><strong>${project.overallProgress || 0}%</strong></div>
         </div>
         <div class="info-grid">
             <div><span class="info-label">Start Date</span><strong>${escapeHtml(formatDate(project.StartDate))}</strong></div>
@@ -569,10 +423,10 @@ const [saving, setSaving] = useState(false);
     <section class="report-card">
         <div class="report-section-title"><div><h3>Project Summary</h3></div></div>
         <div class="summary">
-            <div><span>Stages</span><strong>${totalStages}</strong></div>
+            <div><span>Stages</span><strong>${stages.length}</strong></div>
             <div><span>Tasks</span><strong>${totalTasks}</strong></div>
-            <div><span>Issues</span><strong>${totalIssues}</strong></div>
-            <div><span>Risks</span><strong>${totalRisks}</strong></div>
+            <div><span>Issues</span><strong>${issues.length}</strong></div>
+            <div><span>Risks</span><strong>${risks.length}</strong></div>
         </div>
     </section>
 
@@ -581,6 +435,9 @@ const [saving, setSaving] = useState(false);
 
     <h2>Recent Updates</h2>
     <section class="report-card">${reportUpdates}</section>
+
+    <h2>Comments</h2>
+    <section class="report-card">${reportComments}</section>
 
     <h2>Issues</h2>
     <section class="report-card">${reportIssues}</section>
@@ -662,76 +519,11 @@ const [saving, setSaving] = useState(false);
         );
     }
 
-    const sidebarItems = [
-        { id: "overview", label: "Overview", icon: <FaFileAlt /> },
-        { id: "stages", label: "Stages & Tasks", icon: <FaTasks /> },
-        { id: "updates", label: "Recent Updates", icon: <FaSyncAlt /> },
-        { id: "issues", label: "Issues", icon: <FaExclamationTriangle /> },
-        { id: "risks", label: "Risks", icon: <FaShieldAlt /> },
-        { id: "objectives", label: "Objectives", icon: <FaBullseye /> },
-        { id: "information", label: "Project Information", icon: <FaInfoCircle /> },
-    ];
-
     return (
         <div className="project-details-shell">
             <Header />
 
             <div className="project-details-layout">
-                <aside className="project-details-sidebar">
-                    <div className="details-sidebar-title">
-                        <span className="details-sidebar-icon">
-                            <FaFileAlt />
-                        </span>
-
-                        <div>
-                            <strong>Project Details</strong>
-                            <small>#{project.ProjectID}</small>
-                        </div>
-                    </div>
-
-                    <div className="details-sidebar-project">
-                        <span>Current Project</span>
-                        <strong title={project.ProjectName}>
-                            {project.ProjectName}
-                        </strong>
-                    </div>
-
-                    <nav className="details-sidebar-nav">
-                        {sidebarItems.map((item) => (
-                            <button
-                                key={item.id}
-                                className={
-                                    activeSection === item.id
-                                        ? "active"
-                                        : ""
-                                }
-                                onClick={() => scrollToSection(item.id)}
-                            >
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
-
-                    <div className="details-sidebar-divider" />
-
-                    <button
-                        className="details-sidebar-back"
-                        onClick={() => navigate("/projects")}
-                    >
-                        <FaArrowLeft />
-                        Back to Projects
-                    </button>
-
-                    <button
-                        className="details-sidebar-report"
-                        onClick={handleDownloadReport}
-                    >
-                        <FaDownload />
-                        Project Report
-                    </button>
-                </aside>
-
                 <main className="project-details-content">
                     <div className="project-details-inner">
                         <div className="project-details-topbar">
@@ -751,15 +543,25 @@ const [saving, setSaving] = useState(false);
                             </div>
 
                             <div className="project-actions">
-                                <button
-                                    className="edit-project-btn"
-                                    onClick={() => setSearchParams({ edit: "true" })}
-                                >
-                                    <FaEdit />
-                                    Edit Project
-                                </button>
+                                {canEditProject && (
+                                    <button
+                                        className="edit-project-btn"
+                                        onClick={() =>
+                                            navigate(`/projects/${projectId}/edit`)
+                                        }
+                                    >
+                                        <FaEdit />
+                                        Edit Project
+                                    </button>
+                                )}
 
-                               
+                                <button
+                                    className="report-btn"
+                                    onClick={handleDownloadReport}
+                                >
+                                    <FaDownload />
+                                    Project Report
+                                </button>
 
                                 <button className="more-actions-btn">
                                     <FaEllipsisV />
@@ -767,145 +569,6 @@ const [saving, setSaving] = useState(false);
                             </div>
                         </div>
 
-                        {isEditing ? (
-                            <section className="project-edit-section">
-                                <div className="project-edit-header">
-                                    <div>
-                                        <h1>Edit Project</h1>
-                                        <p>Update the project information stored in the system.</p>
-                                    </div>
-                                </div>
-
-                                <form className="project-edit-form" onSubmit={handleUpdateProject}>
-                                    <div className="project-edit-grid">
-                                        <div className="edit-form-group">
-                                            <label>Project Name</label>
-                                            <input name="projectName" value={editForm.projectName} onChange={handleEditChange} required />
-                                        </div>
-
-                                        <div className="edit-form-group">
-                                            <label>Project Type</label>
-                                            <select name="projectType" value={editForm.projectType} onChange={handleEditChange}>
-                                                <option value="">Select project type</option>
-                                                <option value="Internal">Internal</option>
-                                                <option value="External">External</option>
-                                                <option value="Business">Business</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="edit-form-group">
-                                            <label>Priority</label>
-                                            <select name="priorityLevel" value={editForm.priorityLevel} onChange={handleEditChange}>
-                                                <option value="">Select priority</option>
-                                                <option value="Low">Low</option>
-                                                <option value="Medium">Medium</option>
-                                                <option value="High">High</option>
-                                                <option value="Critical">Critical</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="edit-form-group">
-                                            <label>Status</label>
-                                            <select name="status" value={editForm.status} onChange={handleEditChange}>
-                                                <option value="Planning">Planning</option>
-                                                <option value="Not Started">Not Started</option>
-                                                <option value="In Progress">In Progress</option>
-                                                <option value="Completed">Completed</option>
-                                                <option value="On Hold">On Hold</option>
-                                                <option value="Cancelled">Cancelled</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="edit-form-group">
-                                            <label>Project Manager</label>
-                                            <select name="projectManagerId" value={editForm.projectManagerId} onChange={handleEditChange}>
-                                                <option value="">Unassigned</option>
-                                                {projectManagers.map((manager) => (
-                                                    <option key={manager.UserID} value={manager.UserID}>{manager.FullName}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div className="edit-form-group full">
-                                            <label>Departments</label>
-
-                                            <div className="project-edit-departments">
-                                                {departments.map((department) => {
-                                                    const departmentId = Number(
-                                                        department.DepartmentID
-                                                    );
-
-                                                    const isChecked =
-                                                        editForm.departmentIds.includes(
-                                                            departmentId
-                                                        );
-
-                                                    return (
-                                                         <label
-
-                    key={departmentId}
-
-                    className="project-edit-department-checkbox"
-
-                >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isChecked}
-                                                                onChange={() => {
-                                                                    setEditForm((prev) => ({
-                                                                        ...prev,
-                                                                        departmentIds: isChecked
-                                                                            ? prev.departmentIds.filter(
-                                                                                  (id) =>
-                                                                                      id !==
-                                                                                      departmentId
-                                                                              )
-                                                                            : [
-                                                                                  ...prev.departmentIds,
-                                                                                  departmentId,
-                                                                              ],
-                                                                    }));
-                                                                }}
-                                                            />
-
-                                                            <span>{department.DepartmentName}</span>
-                                                        </label>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-
-                                       
-
-                                        <div className="edit-form-group">
-                                            <label>Target End Date</label>
-                                            <input type="date" name="targetEndDate" value={editForm.targetEndDate} onChange={handleEditChange} />
-                                        </div>
-
-                                        <div className="edit-form-group">
-                                            <label>Strategic Project</label>
-                                            <select name="isStrategic" value={String(editForm.isStrategic)} onChange={handleEditChange}>
-                                                <option value="false">No</option>
-                                                <option value="true">Yes</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="edit-form-group full">
-                                            <label>Description</label>
-                                            <textarea name="projectDescription" value={editForm.projectDescription} onChange={handleEditChange} rows="5" />
-                                        </div>
-                                    </div>
-
-                                    <div className="project-edit-actions">
-                                        <button type="button" className="edit-cancel-btn" onClick={cancelEdit} disabled={saving}>Cancel</button>
-                                        <button type="submit" className="edit-save-btn" disabled={saving}>
-                                            {saving ? "Saving..." : "Save Changes"}
-                                        </button>
-                                    </div>
-                                </form>
-                            </section>
-                        ) : (
-                            <>
                         <section
                             id="overview"
                             className="project-main-card details-section"
@@ -991,18 +654,29 @@ const [saving, setSaving] = useState(false);
                             </div>
 
                             <div className="project-progress-area">
-                                <div
-                                    className="large-progress-circle"
-                                    style={{
-                                        "--progress": `${
-                                            project.overallProgress ?? 0
-                                        }%`,
-                                    }}
-                                >
-                                    <div>
-                                        <strong>
-                                            {project.overallProgress ?? 0}%
-                                        </strong>
+                                <div className="large-progress-circle">
+                                    <svg
+                                        className="large-progress-svg"
+                                        viewBox="0 0 120 120"
+                                        aria-label={`Overall progress ${project.overallProgress || 0}%`}
+                                    >
+                                        <circle
+                                            className="progress-circle-track"
+                                            cx="60"
+                                            cy="60"
+                                            r="50"
+                                        />
+                                        <circle
+                                            className="progress-circle-value"
+                                            cx="60"
+                                            cy="60"
+                                            r="50"
+                                            pathLength="100"
+                                            strokeDasharray={`${project.overallProgress || 0} 100`}
+                                        />
+                                    </svg>
+                                    <div className="large-progress-content">
+                                        <strong>{project.overallProgress || 0}%</strong>
                                         <span>Overall Progress</span>
                                     </div>
                                 </div>
@@ -1045,7 +719,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card blue">
                                 <div>
                                     <span>Total Stages</span>
-                                    <strong>{totalStages}</strong>
+                                    <strong>{stages.length}</strong>
                                     <small>Completed: {completedStages}</small>
                                 </div>
                                 <div className="stat-icon">
@@ -1067,7 +741,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card orange">
                                 <div>
                                     <span>Issues</span>
-                                    <strong>{totalIssues}</strong>
+                                    <strong>{issues.length}</strong>
                                     <small>Open: {openIssues}</small>
                                 </div>
                                 <div className="stat-icon">
@@ -1078,7 +752,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card red">
                                 <div>
                                     <span>Risks</span>
-                                    <strong>{totalRisks}</strong>
+                                    <strong>{risks.length}</strong>
                                     <small>
                                         High Priority: {highPriorityRisks}
                                     </small>
@@ -1091,7 +765,7 @@ const [saving, setSaving] = useState(false);
                             <div className="stat-card purple">
                                 <div>
                                     <span>Objectives</span>
-                                    <strong>{totalObjectives}</strong>
+                                    <strong>{objectives.length}</strong>
                                     <small>
                                         Key Results: {totalKeyResults}
                                     </small>
@@ -1155,16 +829,14 @@ const [saving, setSaving] = useState(false);
                                             </span>
 
                                             <strong className="stage-progress-text">
-                                                {stage.progress ?? 0}%
+                                                {stage.progress || 0}%
                                             </strong>
 
-                                            <div className="stage-progress">
-                                                <div
-                                                    style={{
-                                                        width: `${stage.progress ?? 0}%`,
-                                                    }}
-                                                />
-                                            </div>
+                                            <progress
+                                                className="stage-progress"
+                                                value={stage.ProgressPercent || 0}
+                                                max="100"
+                                            />
 
                                             <strong className="task-count">
                                                 {stage.tasks?.length || 0}
@@ -1303,6 +975,55 @@ const [saving, setSaving] = useState(false);
                                 {updates.length === 0 && (
                                     <div className="empty-state">
                                         No recent updates.
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
+                        <section
+                            id="comments"
+                            className="details-section comments-section"
+                        >
+                            <div className="section-header">
+                                <div>
+                                    <h2>Comments</h2>
+                                    <p>Comments related to this project.</p>
+                                </div>
+                            </div>
+
+                            <div className="comments-list">
+                                {comments.map((comment, index) => (
+                                    <div
+                                        className="comment-card"
+                                        key={comment.CommentID || comment.ID || index}
+                                    >
+                                        <div className="comment-avatar">
+                                            {getInitials(comment.CreatedByName)}
+                                        </div>
+                                        <div className="comment-body">
+                                            <div className="comment-head">
+                                                <strong>
+                                                    {comment.CreatedByName ||
+                                                        `User #${comment.CreatedBy}`}
+                                                </strong>
+                                                <time>
+                                                    {formatDate(comment.CreatedAt)}
+                                                </time>
+                                            </div>
+                                            <p>
+                                                {comment.CommentText ||
+                                                    comment.Comment ||
+                                                    comment.Content ||
+                                                    comment.Description ||
+                                                    ""}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {comments.length === 0 && (
+                                    <div className="empty-state">
+                                        No comments available.
                                     </div>
                                 )}
                             </div>
@@ -1534,16 +1255,11 @@ const [saving, setSaving] = useState(false);
                                                     </strong>
 
                                                     <div className="kr-progress">
-                                                        <div className="kr-progress-bar">
-                                                            <div
-                                                                style={{
-                                                                    width: `${
-                                                                        keyResult.ProgressPercent ||
-                                                                        0
-                                                                    }%`,
-                                                                }}
-                                                            />
-                                                        </div>
+                                                        <progress
+                                                            className="kr-progress-bar"
+                                                            value={keyResult.ProgressPercent || 0}
+                                                            max="100"
+                                                        />
                                                         <strong>
                                                             {keyResult.ProgressPercent ||
                                                                 0}
@@ -1652,8 +1368,6 @@ const [saving, setSaving] = useState(false);
                                 </div>
                             </div>
                         </section>
-                        </>
-                        )}
                     </div>
                 </main>
             </div>

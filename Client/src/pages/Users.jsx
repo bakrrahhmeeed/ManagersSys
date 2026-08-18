@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
     FaPlus,
     FaSearch,
@@ -9,6 +10,8 @@ import {
     FaEye,
     FaSyncAlt,
     FaUsers,
+    FaBuilding,
+    FaCodeBranch,
 } from "react-icons/fa";
 
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -159,9 +162,11 @@ function Users() {
         <DashboardLayout>
             <div className="users-page">
 
+                {/* HEADER */}
                 <div className="users-page-header">
                     <div>
                         <h1>Users</h1>
+
                         <p>
                             Manage and view system users
                         </p>
@@ -175,6 +180,7 @@ function Users() {
                         Add User
                     </button>
                 </div>
+
 
                 <div className="users-toolbar">
 
@@ -229,8 +235,10 @@ function Users() {
 
                 </div>
 
+             
                 <section className="users-panel">
 
+              
                     <div className="users-panel-header">
 
                         <div>
@@ -246,8 +254,10 @@ function Users() {
 
                     </div>
 
+  
                     {filteredUsers.length === 0 ? (
                         <div className="users-empty">
+
                             <FaUsers />
 
                             <strong>
@@ -257,155 +267,194 @@ function Users() {
                             <span>
                                 Try changing your search or filter.
                             </span>
+
                         </div>
                     ) : (
-                        <div className="users-table-wrapper">
 
-                            <table className="users-table">
+         
+                        <div className="users-cards">
 
-                                <thead>
-                                    <tr>
-                                        <th>User</th>
-                                        <th>Username</th>
-                                        <th>Email</th>
-                                        <th>Department</th>
-                                        <th>Branch</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
+                            {filteredUsers.map((user) => (
 
-                                <tbody>
+                                <article
+                                    className="user-card"
+                                    key={user.UserID}
+                                >
 
-                                    {filteredUsers.map((user) => (
 
-                                        <tr key={user.UserID}>
+                                    <div className="user-card-top">
 
-                                            <td>
-                                                <div className="user-cell">
+                                        <div className="user-card-avatar">
+                                            {getInitials(
+                                                user.FullName
+                                            )}
+                                        </div>
 
-                                                    <div className="user-avatar">
-                                                        {getInitials(
-                                                            user.FullName
-                                                        )}
-                                                    </div>
+                                        <div className="user-card-actions">
 
-                                                    <div className="user-info">
+                                            <button
+                                                className="user-action view"
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/users/${user.UserID}`
+                                                    )
+                                                }
+                                                title="View"
+                                            >
+                                                <FaEye />
+                                            </button>
 
-                                                        <strong>
-                                                            {user.FullName || "-"}
-                                                        </strong>
+                                            <button
+                                                className="user-action edit"
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/users/${user.UserID}/edit`
+                                                    )
+                                                }
+                                                title="Edit"
+                                            >
+                                                <FaEdit />
+                                            </button>
 
-                                                        <span>
-                                                            #{user.UserID}
-                                                        </span>
+                                            <button
+                                                className="user-action delete"
+                                                onClick={() =>
+                                                    handleDelete(user)
+                                                }
+                                                disabled={
+                                                    deletingId ===
+                                                    user.UserID
+                                                }
+                                                title="Delete"
+                                            >
+                                                <FaTrash />
+                                            </button>
 
-                                                    </div>
+                                        </div>
 
-                                                </div>
-                                            </td>
+                                    </div>
 
-                                            <td>
-                                                <span className="username-cell">
+                                    <div className="user-card-name">
+
+                                        <h3>
+                                            {user.FullName || "-"}
+                                        </h3>
+
+                                        <span>
+                                            ID: {user.UserID}
+                                        </span>
+
+                                    </div>
+
+                                 
+                                    <div className="user-card-username">
+                                        @{user.UserName || "-"}
+                                    </div>
+
+                                    {/* INFO */}
+                                    <div className="user-card-info">
+
+                                        <div className="user-info-row">
+
+                                            <div className="user-info-icon">
+                                                <FaUsers />
+                                            </div>
+
+                                            <div>
+                                                <span>
+                                                    Username
+                                                </span>
+
+                                                <strong>
                                                     {user.UserName || "-"}
-                                                </span>
-                                            </td>
+                                                </strong>
+                                            </div>
 
-                                            <td>
-                                                <span className="email-cell">
-                                                    {user.Email || "-"}
-                                                </span>
-                                            </td>
+                                        </div>
 
-                                            <td>
-                                                <span className="id-badge">
+                                        <div className="user-info-row">
+
+                                            <div className="user-info-icon">
+                                                <FaBuilding />
+                                            </div>
+
+                                            <div>
+                                                <span>
+                                                    Department
+                                                </span>
+
+                                                <strong>
                                                     {user.DepartmentName ||
                                                         user.DepartmentID ||
-                                                        "-"}
-                                                </span>
-                                            </td>
+                                                        "No Department"}
+                                                </strong>
+                                            </div>
 
-                                            <td>
-                                                <span className="id-badge">
+                                        </div>
+
+                                        <div className="user-info-row">
+
+                                            <div className="user-info-icon">
+                                                <FaCodeBranch />
+                                            </div>
+
+                                            <div>
+                                                <span>
+                                                    Branch
+                                                </span>
+
+                                                <strong>
                                                     {user.BranchName ||
                                                         user.BranchID ||
-                                                        "-"}
-                                                </span>
-                                            </td>
+                                                        "No Branch"}
+                                                </strong>
+                                            </div>
 
-                                            <td>
+                                        </div>
 
-                                                <span
-                                                    className={`user-status ${
-                                                        user.IsActive
-                                                            ? "active"
-                                                            : "inactive"
-                                                    }`}
-                                                >
-                                                    <i />
+                                    </div>
 
-                                                    {user.IsActive
-                                                        ? "Active"
-                                                        : "Inactive"}
-                                                </span>
+                                    <div className="user-card-email">
 
-                                            </td>
+                                        <span>
+                                            Email
+                                        </span>
 
-                                            <td>
+                                        <strong>
+                                            {user.Email || "-"}
+                                        </strong>
 
-                                                <div className="user-actions">
+                                    </div>
 
-                                                    <button
-                                                        className="user-action view"
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/users/${user.UserID}`
-                                                            )
-                                                        }
-                                                        title="View"
-                                                    >
-                                                        <FaEye />
-                                                    </button>
 
-                                                    <button
-                                                        className="user-action edit"
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/users/${user.UserID}/edit`
-                                                            )
-                                                        }
-                                                        title="Edit"
-                                                    >
-                                                        <FaEdit />
-                                                    </button>
+                                    <div className="user-card-footer">
 
-                                                    <button
-                                                        className="user-action delete"
-                                                        onClick={() =>
-                                                            handleDelete(user)
-                                                        }
-                                                        disabled={
-                                                            deletingId ===
-                                                            user.UserID
-                                                        }
-                                                        title="Delete"
-                                                    >
-                                                        <FaTrash />
-                                                    </button>
+                                        <span
+                                            className={`user-status ${
+                                                user.IsActive
+                                                    ? "active"
+                                                    : "inactive"
+                                            }`}
+                                        >
+                                            <i />
 
-                                                </div>
+                                            {user.IsActive
+                                                ? "Active"
+                                                : "Inactive"}
+                                        </span>
 
-                                            </td>
+                                        <span className="user-card-id">
+                                            #{user.UserID}
+                                        </span>
 
-                                        </tr>
+                                    </div>
 
-                                    ))}
+                                </article>
 
-                                </tbody>
-
-                            </table>
+                            ))}
 
                         </div>
+
                     )}
 
                 </section>

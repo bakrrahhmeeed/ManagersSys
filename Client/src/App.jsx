@@ -14,6 +14,7 @@ import CreateUser from "./pages/createUser";
 import UpdateUser from "./pages/Updateuser";
 import UserDetails from "./pages/UserDetails";
 import EditTaskEmb from "./pages/EditTaskEmb";
+import ProjectUpdate from "./pages/ProjectUpdate";
 
 
 function App() {
@@ -28,6 +29,10 @@ function App() {
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
 
         <Route path="/projects/:projectId" element={<ProjectDetails />} />
+
+        <Route path="/projects/:projectId" element={<ProjectDetails />} />
+
+        <Route path="/projects/:projectId/edit" element={<ProtectedRoute><ProjectUpdate /></ProtectedRoute>}/>
 
         <Route path="/tasks" element={<Tasks />} />
 
@@ -46,6 +51,8 @@ function App() {
         <Route path="/tasks/:taskId/edit" element={<EditTask />} />
 
         <Route path="/tasks/:taskId/edit-employee" element={<EditTaskEmb />}/>
+
+        <Route path="/projects/add" element={<Projects />} />
 
 
 

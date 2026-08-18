@@ -10,6 +10,9 @@ ORDER BY DepartmentName;`;
     return result.recordset;
 };
 
+
+const getDepartmentuser = async()=>{}
+
 module.exports={
     getdepartments
 }
