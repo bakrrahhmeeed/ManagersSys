@@ -21,6 +21,7 @@ const issuesRoute = require("./routes/issuesRoute")
 const risksRoute = require("./routes/RisksRoute")
 const dashboard = require("./routes/dashboardRoute")
 const departments = require("./routes/DepartmentRoute")
+const comment = require("./routes/CommentRoute")
 
 
 
@@ -41,15 +42,16 @@ app.use("/api",authRoute)
 
 app.use(authMiddleware)
 app.use("/api/users",  userRoutes);
-app.use("/api/projects" ,  projectRoute)
-app.use("/api",projectDetailRoute)
+app.use("/api/projects" ,  projectRoute);
+app.use("/api",projectDetailRoute);
 app.use("/api/stages", stageRoute);
 app.use("/api/tasks",tasksRoute);
 app.use("/api/objectives",objectivesRoute);
 app.use("/api/issues", issuesRoute);
 app.use("/api/risks", risksRoute);
-app.use("/api/dashboard", dashboard)
-app.use("/api/departments" , departments)
+app.use("/api/dashboard", dashboard);
+app.use("/api/departments" , departments);
+app.use("/api/addcomment", comment);
 
 
 

@@ -18,6 +18,8 @@ import {
     FaInfoCircle,
 } from "react-icons/fa";
 
+import { addcommentonProject } from "../services/commentService";
+
 import Header from "../components/Header";
 import "../styles/ProjectDetails.css";
 
@@ -29,6 +31,37 @@ const ProjectDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeSection, setActiveSection] = useState("overview");
+
+    const [showCommentInput, setShowCommentInput] = useState(false);
+    const [newComment, setNewComment] = useState("");
+    const [isAddingComment, setIsAddingComment] = useState(false);
+
+const handleAddComment = async () => {
+    if (!newComment.trim()) {
+        return;
+    }
+
+    try {
+        setIsAddingComment(true);
+
+        const result = await addcommentonProject({
+            referenceId: projectId,
+            commentText: newComment.trim()
+        });
+
+        console.log("Comment added:", result);
+
+        setNewComment("");
+        setShowCommentInput(false);
+
+        await fetchComments();
+
+    } catch (error) {
+        console.error("Failed to add comment:", error);
+    } finally {
+        setIsAddingComment(false);
+    }
+};
 
     useEffect(() => {
         const fetchProjectDetails = async () => {
@@ -979,55 +1012,151 @@ const ProjectDetails = () => {
                                 )}
                             </div>
                         </section>
+<section
+    id="comments"
+    className="details-section comments-section"
+>
+    <div className="section-header">
+        <div>
+            <h2>
+                Comments
 
-                        <section
-                            id="comments"
-                            className="details-section comments-section"
-                        >
-                            <div className="section-header">
-                                <div>
-                                    <h2>Comments</h2>
-                                    <p>Comments related to this project.</p>
-                                </div>
-                            </div>
+                <button
+                    type="button"
+                    onClick={() =>
+                        setShowCommentInput(prev => !prev)
+                    }
+                >
+                    <FaEdit />
+                    {showCommentInput
+                        ? "Cancel"
+                        : "Add Comment"}
+                </button>
+            </h2>
 
-                            <div className="comments-list">
-                                {comments.map((comment, index) => (
-                                    <div
-                                        className="comment-card"
-                                        key={comment.CommentID || comment.ID || index}
-                                    >
-                                        <div className="comment-avatar">
-                                            {getInitials(comment.CreatedByName)}
-                                        </div>
-                                        <div className="comment-body">
-                                            <div className="comment-head">
-                                                <strong>
-                                                    {comment.CreatedByName ||
-                                                        `User #${comment.CreatedBy}`}
-                                                </strong>
-                                                <time>
-                                                    {formatDate(comment.CreatedAt)}
-                                                </time>
-                                            </div>
-                                            <p>
-                                                {comment.CommentText ||
-                                                    comment.Comment ||
-                                                    comment.Content ||
-                                                    comment.Description ||
-                                                    ""}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
+            <p>
+                Comments related to this project.
+            </p>
+        </div>
+    </div>
 
-                                {comments.length === 0 && (
-                                    <div className="empty-state">
-                                        No comments available.
-                                    </div>
-                                )}
-                            </div>
-                        </section>
+
+    {/* =========================
+        ADD COMMENT INPUT
+    ========================== */}
+
+    {showCommentInput && (
+        <div className="add-comment-box">
+
+            <textarea
+                value={newComment}
+                onChange={(e) =>
+                    setNewComment(e.target.value)
+                }
+                placeholder="Write your comment..."
+                rows={4}
+            />
+
+            <div className="add-comment-actions">
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setShowCommentInput(false);
+                        setNewComment("");
+                    }}
+                    disabled={isAddingComment}
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    disabled={
+                        isAddingComment ||
+                        !newComment.trim()
+                    }
+                    onClick={handleAddComment}
+                >
+                    {isAddingComment
+                        ? "Adding..."
+                        : "Add Comment"}
+                </button>
+
+            </div>
+
+        </div>
+    )}
+
+
+    {/* =========================
+        COMMENTS LIST
+    ========================== */}
+
+    <div className="comments-list">
+
+        {comments.map((comment, index) => (
+
+            <div
+                className="comment-card"
+                key={
+                    comment.CommentID ||
+                    comment.ID ||
+                    index
+                }
+            >
+
+                <div className="comment-avatar">
+
+                    {getInitials(
+                        comment.CreatedByName
+                    )}
+
+                </div>
+
+
+                <div className="comment-body">
+
+                    <div className="comment-head">
+
+                        <strong>
+                            {comment.CreatedByName ||
+                                `User #${comment.CreatedBy}`}
+                        </strong>
+
+                        <time>
+                            {formatDate(
+                                comment.CreatedAt
+                            )}
+                        </time>
+
+                    </div>
+
+
+                    <p>
+                        {comment.CommentText ||
+                            comment.Comment ||
+                            comment.Content ||
+                            comment.Description ||
+                            ""}
+                    </p>
+
+                </div>
+
+            </div>
+
+        ))}
+
+
+        {comments.length === 0 && (
+            <div className="empty-state">
+                No comments available.
+            </div>
+        )}
+
+    </div>
+
+</section>
 
                         <section
                             id="issues"

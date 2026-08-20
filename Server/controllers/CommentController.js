@@ -1,18 +1,24 @@
-const  CommentService = require("../services/CommentService")
+const CommentService = require("../services/CommentService");
 
-
-const addcomment = async(req , res , next)=>{
-    try{
-        const result = await CommentService.addcomment(req.user , req.params.is , req.body)
-        res.status(200).json(result);
+const addcomment = async (req, res, next) => {
+    try {
+        const result = await CommentService.addcomment(req.user,req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        next(err);
     }
-    catch(err){
-        next(err)
-    }
-    
+};
 
-}
+const addcommentonProject = async (req, res, next) => {
+    try {
+        const result = await CommentService.addcommentonProject(req.user,req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        next(err);
+    }
+};
 
 module.exports = {
-    addcomment
-}
+    addcomment,
+    addcommentonProject
+};

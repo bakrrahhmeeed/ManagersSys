@@ -12,9 +12,11 @@ import {
     FaCheckCircle,
     FaExclamationTriangle,
     FaComment,
+    FaPlus,
 } from "react-icons/fa";
 
 import { getTask } from "../services/tasksService";
+import { addComment } from "../services/commentService";
 import "../styles/TaskDetails.css";
 
 const TaskDetails = () => {
@@ -28,7 +30,48 @@ const TaskDetails = () => {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [showCommentInput, setShowCommentInput] = useState(false);
+    const [commentText, setCommentText] = useState("");
 
+const handleAddComment = async () => {
+    if (!commentText.trim()) {
+        return;
+    }
+
+    try {
+        const response = await addComment({
+            referenceType: "Task",
+            referenceId: id,
+            commentText: commentText.trim(),
+        });
+
+        console.log("Comment added:", response);
+
+        setCommentText("");
+        setShowCommentInput(false);
+
+        const newComment =
+            response?.comment || response;
+
+        if (newComment) {
+            setComments((prev) => [
+                ...prev,
+                newComment,
+            ]);
+        }
+
+    } catch (error) {
+        console.error(
+            "Failed to add comment:",
+            error
+        );
+
+        console.error(
+            "Server response:",
+            error.response?.data
+        );
+    }
+};
 
 
 
@@ -479,77 +522,125 @@ const TaskDetails = () => {
                 )}
 
 
-                {/* =========================
-                    COMMENTS
-                ========================== */}
+ {/* =========================
+    COMMENTS
+========================== */}
 
-                <div className="task-details-card">
+<div className="task-details-card">
 
-                    <div className="task-details-card-header">
+    <div className="task-details-card-header">
 
-                        <h2>
-                            <FaComment />
-                            Comments
-                        </h2>
+        <h2>
+            <FaComment />
+            Add Comments
 
-                        <span className="comments-count">
-                            {comments.length}
-                        </span>
+            <button
+                type="button"
+                onClick={() => setShowCommentInput(prev => !prev)}
+            >
+                <FaPlus />
+            </button>
+        </h2>
+
+        <span className="comments-count">
+            {comments.length}
+        </span>
+
+    </div>
+
+    {/* Add Comment Input */}
+
+    {showCommentInput && (
+        <div className="add-comment-box">
+
+            <textarea
+                value={commentText}
+                onChange={(e) =>
+                    setCommentText(e.target.value)
+                }
+                placeholder="Write your comment..."
+                rows={4}
+            />
+
+            <div className="add-comment-actions">
+
+                <button
+                    type="button"
+                    className="cancel-comment-btn"
+                    onClick={() => {
+                        setShowCommentInput(false);
+                        setCommentText("");
+                    }}
+                >
+                    Cancel
+                </button>
+
+<button
+    type="button"
+    className="submit-comment-btn"
+    disabled={!commentText.trim()}
+    onClick={handleAddComment}
+>
+    Add Comment
+</button>
+
+            </div>
+
+        </div>
+    )}
+
+    {comments.length === 0 ? (
+        <div className="no-comments">
+            No comments available for this task.
+        </div>
+    ) : (
+        <div className="comments-list">
+
+            {comments.map((comment) => (
+                <div
+                    className="comment-item"
+                    key={comment.CommentID}
+                >
+
+                    <div className="comment-avatar">
+                        {String(
+                            comment.CreatedByName || "U"
+                        )
+                            .charAt(0)
+                            .toUpperCase()}
+                    </div>
+
+                    <div className="comment-content">
+
+                        <div className="comment-header">
+
+                            <strong>
+                                {comment.CreatedByName}
+                            </strong>
+
+                            <span>
+                                {formatDate(
+                                    comment.CreatedAt
+                                )}
+                            </span>
+
+                        </div>
+
+                        <p>
+                            {comment.CommentText ||
+                                comment.CommentContext ||
+                                "No comment text."}
+                        </p>
 
                     </div>
 
-                    {comments.length === 0 ? (
-                        <div className="no-comments">
-                            No comments available for this task.
-                        </div>
-                    ) : (
-                        <div className="comments-list">
-
-                            {comments.map((comment) => (
-                                <div
-                                    className="comment-item"
-                                    key={comment.CommentID}
-                                >
-
-                                    <div className="comment-avatar">
-                                        {String(
-                                            comment.CreatedByName || "U"
-                                        )
-                                            .charAt(0)
-                                            .toUpperCase()}
-                                    </div>
-
-                                    <div className="comment-content">
-
-                                        <div className="comment-header">
-
-                                            <strong>
-                                                {comment.CreatedByName}
-                                            </strong>
-
-                                            <span>
-                                                {formatDate(
-                                                    comment.CreatedAt
-                                                )}
-                                            </span>
-
-                                        </div>
-
-                                        <p>
-                                            {comment.CommentText ||
-                                                comment.CommentContext ||
-                                                "No comment text."}
-                                        </p>
-
-                                    </div>
-
-                                </div>
-                            ))}
-
-                        </div>
-                    )}
-
                 </div>
+            ))}
+
+        </div>
+    )}
+
+</div>
 
             </div>
         </div>

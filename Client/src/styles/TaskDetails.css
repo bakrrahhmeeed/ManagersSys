@@ -589,3 +589,78 @@
 
 }
 
+
+.add-comment-box {
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafbfc;
+}
+
+.add-comment-box textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 14px 16px;
+    border: 1px solid #d9e0ea;
+    border-radius: 10px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 14px;
+    color: #1e293b;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.add-comment-box textarea:focus {
+    border-color: #ef1b23;
+    box-shadow: 0 0 0 3px rgba(239, 27, 35, 0.08);
+}
+
+.add-comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.cancel-comment-btn,
+.submit-comment-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancel-comment-btn {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.submit-comment-btn {
+    background: #ed1c24;
+    color: white;
+}
+
+.submit-comment-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.task-details-card-header h2 button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+.task-details-card-header h2 button:hover {
+    color: #ed1c24;
+}
