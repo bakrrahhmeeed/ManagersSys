@@ -11,7 +11,7 @@ const getAllStages = async (req, res, next) => {
 
 const createStage = async (req, res, next) => {
   try {
-    const result = await stageService.createStage(req.body);
+    const result = await stageService.createStage(req.user,req.body);
     res.status(201).json(result);
   } catch (err) {
     next(err);
@@ -55,11 +55,32 @@ const getStagesByProject = async(req , res , next) =>{
   }
 }
 
+const getProjectsWithStages = async(req , res , next)=>{
+  try{
+    const result = await stageService.getProjectsWithStages(req.user);
+    res.status(200).json(result);
+  }
+  catch(err){
+    next(err);
+  }
+}
+
+const getDepartmentManger= async (req, res, next) => {
+    try {
+        const result = await stageService.getDepartmentManger(req.params.departmentId);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getAllStages,
     createStage,
     updateStage,
     deleteStage,
     getStage,
-    getStagesByProject
+    getStagesByProject,
+    getProjectsWithStages, 
+    getDepartmentManger
 };

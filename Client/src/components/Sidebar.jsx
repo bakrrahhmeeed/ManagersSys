@@ -6,7 +6,9 @@ import {
   FaTasks,
   FaSignOutAlt,
   FaPlus,
+  FaLayerGroup
 } from "react-icons/fa";
+
 import "../styles/Sidebar.css";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
@@ -14,6 +16,7 @@ import { AuthContext } from "../context/AuthContext";
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
   const { user, logout } = useContext(AuthContext);
 
   const handleLogout = () => {
@@ -21,10 +24,19 @@ const Sidebar = () => {
     navigate("/");
   };
 
-  const role = String(user?.roleName || "").toLowerCase();
+  const role = String(
+    user?.roleName || ""
+  ).toLowerCase();
 
   const canCreateProject =
-    role === "administrator" || role === "secretary";
+    role === "administrator" ||
+    role === "secretary";
+
+  const canViewStages =
+    role === "administrator" ||
+    role === "pmo manager" ||
+    role === "project manager" ||
+    role === "department manager";
 
   const menuItems = [
     {
@@ -32,6 +44,7 @@ const Sidebar = () => {
       path: "/dashboard",
       icon: <FaHome />,
     },
+
     {
       title: "Projects",
       path: "/projects",
@@ -41,6 +54,7 @@ const Sidebar = () => {
           title: "All",
           path: "/projects",
         },
+
         ...(canCreateProject
           ? [
               {
@@ -52,6 +66,17 @@ const Sidebar = () => {
           : []),
       ],
     },
+
+    ...(canViewStages
+      ? [
+          {
+            title: "Stages",
+            path: "/stages",
+            icon: <FaLayerGroup />,
+          },
+        ]
+      : []),
+
     {
       title: "Tasks",
       path: "/tasks",
@@ -59,63 +84,103 @@ const Sidebar = () => {
     },
   ];
 
-  if (role === "administrator") {
-    menuItems.splice(2, 0, {
-      title: "Users",
-      path: "/users",
-      icon: <FaUsers />,
-    });
-  }
+ if (role === "administrator") {
+  menuItems.push({
+    title: "Users",
+    path: "/users",
+    icon: <FaUsers />,
+  });
+}
 
   return (
     <aside className="sidebar">
+
       <nav className="sidebar-menu">
+
         {menuItems.map((item) => {
-          const isProjects = item.title === "Projects";
+
+          const isProjects =
+            item.title === "Projects";
 
           const isActive =
             location.pathname === item.path ||
-            location.pathname.startsWith(`${item.path}/`);
+            location.pathname.startsWith(
+              `${item.path}/`
+            );
 
           return (
-            <div key={item.path} className="sidebar-item-wrapper">
+            <div
+              key={item.path}
+              className="sidebar-item-wrapper"
+            >
+
               <Link
                 to={item.path}
-                className={isActive ? "active" : ""}
+                className={
+                  isActive
+                    ? "active"
+                    : ""
+                }
               >
                 {item.icon}
                 <span>{item.title}</span>
               </Link>
 
-              {isProjects && isActive && item.children && (
-                <div className="sidebar-submenu">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.path}
-                      to={child.path}
-                      className={
-                        location.pathname === child.path
-                          ? "submenu-active"
-                          : ""
-                      }
-                    >
-                      {child.icon && child.icon}
-                      <span>{child.title}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+              {isProjects &&
+                isActive &&
+                item.children && (
+
+                  <div className="sidebar-submenu">
+
+                    {item.children.map(
+                      (child) => (
+
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          className={
+                            location.pathname ===
+                            child.path
+                              ? "submenu-active"
+                              : ""
+                          }
+                        >
+
+                          {child.icon &&
+                            child.icon}
+
+                          <span>
+                            {child.title}
+                          </span>
+
+                        </Link>
+
+                      )
+                    )}
+
+                  </div>
+
+                )}
+
             </div>
           );
+
         })}
+
       </nav>
 
       <div className="sidebar-footer">
-        <button className="logout-btn" onClick={handleLogout}>
+
+        <button
+          className="logout-btn"
+          onClick={handleLogout}
+        >
           <FaSignOutAlt />
           <span>Logout</span>
         </button>
+
       </div>
+
     </aside>
   );
 };

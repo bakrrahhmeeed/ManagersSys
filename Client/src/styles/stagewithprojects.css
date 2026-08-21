@@ -1,0 +1,879 @@
+.stages-page {
+    width: 100%;
+    min-height: 100%;
+    padding: 28px 32px 40px;
+    box-sizing: border-box;
+    background: #f7f7f7;
+}
+
+
+/* =========================
+   PAGE HEADER
+========================= */
+
+.stages-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+}
+
+.stages-page-header h1 {
+    margin: 0;
+    color: #1f1f1f;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.stages-page-header p {
+    margin: 6px 0 0;
+    color: #7a7a7a;
+    font-size: 14px;
+}
+
+
+/* =========================
+   TOOLBAR
+========================= */
+
+.stages-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.project-filter {
+    width: 175px;
+    flex-shrink: 0;
+}
+
+.project-filter select {
+    width: 100%;
+    height: 42px;
+    padding: 0 13px;
+    box-sizing: border-box;
+    border: 1px solid #dedede;
+    border-radius: 7px;
+    outline: none;
+    background: #ffffff;
+    color: #333333;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.project-filter select:focus {
+    border-color: #e31e24;
+}
+
+
+.stage-search {
+    width: 300px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 13px;
+    box-sizing: border-box;
+    border: 1px solid #dedede;
+    border-radius: 7px;
+    background: #ffffff;
+    transition: border-color 0.2s ease;
+}
+
+.stage-search:focus-within {
+    border-color: #e31e24;
+}
+
+.stage-search svg {
+    flex-shrink: 0;
+    color: #999999;
+    font-size: 14px;
+}
+
+.stage-search input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #333333;
+    font-size: 13px;
+}
+
+.stage-search input::placeholder {
+    color: #a0a0a0;
+}
+
+
+.projects-count {
+    margin-left: auto;
+    padding: 9px 13px;
+    border: 1px solid #dedede;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #555555;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* =========================
+   PROJECT LIST
+========================= */
+
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.project-stage-card {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #dfdfdf;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.035);
+}
+
+
+/* =========================
+   PROJECT HEADER
+========================= */
+
+.project-main-header {
+    min-height: 108px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    padding: 19px 20px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #ededed;
+}
+
+.project-identity {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.project-icon {
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: #fff1f1;
+    color: #e31e24;
+    font-size: 22px;
+}
+
+.project-title {
+    min-width: 0;
+}
+
+.project-name-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+.project-title h2 {
+    margin: 0;
+    color: #222222;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.project-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* =========================
+   PROJECT STATUS
+========================= */
+
+.project-status.completed {
+    background: #e9f7ee;
+    color: #1f9d55;
+}
+
+.project-status.in-progress {
+    background: #fff3e6;
+    color: #e67e22;
+}
+
+.project-status.not-started {
+    background: #eeeeee;
+    color: #777777;
+}
+
+.project-status.blocked {
+    background: #ffe9e9;
+    color: #d71920;
+}
+
+
+/* =========================
+   PROJECT INFO
+========================= */
+
+.project-manager {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 5px;
+    color: #777777;
+    font-size: 12px;
+}
+
+.project-manager strong {
+    color: #444444;
+    font-weight: 600;
+}
+
+.project-dates {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 6px;
+    color: #777777;
+    font-size: 11px;
+}
+
+.project-dates span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.project-dates svg {
+    color: #888888;
+    font-size: 10px;
+}
+
+.project-dates strong {
+    color: #444444;
+}
+
+.date-separator {
+    color: #b0b0b0;
+}
+
+
+/* =========================
+   PROJECT PROGRESS
+========================= */
+
+.project-progress {
+    width: 330px;
+    flex-shrink: 0;
+}
+
+.progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    color: #777777;
+    font-size: 12px;
+}
+
+.progress-top strong {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.progress-top strong.completed {
+    color: #1f9d55;
+}
+
+.progress-top strong.in-progress {
+    color: #e67e22;
+}
+
+.progress-top strong.not-started {
+    color: #777777;
+}
+
+.progress-top strong.blocked {
+    color: #d71920;
+}
+
+
+/* =========================
+   PROGRESS BAR
+========================= */
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e9e9e9;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.3s ease;
+}
+
+.progress-fill.completed {
+    background: #27ae60;
+}
+
+.progress-fill.in-progress {
+    background: #e67e22;
+}
+
+.progress-fill.not-started {
+    background: #cfcfcf;
+}
+
+.progress-fill.blocked {
+    background: #d71920;
+}
+
+
+/* =========================
+   STAGES ROW
+========================= */
+
+.project-stages-row {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(190px, 1fr)
+        );
+
+    gap: 8px;
+
+    padding: 9px 18px 10px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================
+   STAGE CARD
+========================= */
+
+.stage-card {
+    min-width: 0;
+    min-height: 104px;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 12px;
+
+    text-align: left;
+
+    border: 1px solid #dedede;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #333333;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.stage-card:hover {
+    border-color: #d0a0a0;
+
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.06);
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================
+   STAGE HEADER
+========================= */
+
+.stage-card-header {
+    display: grid;
+
+    grid-template-columns:
+        25px
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.stage-order {
+    width: 24px;
+    height: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eeeeee;
+
+    color: #555555;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.stage-order.in-progress {
+    background: #fff0df;
+    color: #e67e22;
+}
+
+.stage-order.completed {
+    background: #e8f7ed;
+    color: #1f9d55;
+}
+
+.stage-order.blocked {
+    background: #ffe8e8;
+    color: #d71920;
+}
+
+.stage-card h4 {
+    min-width: 0;
+
+    margin: 0;
+
+    overflow: hidden;
+
+    color: #333333;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    line-height: 1.3;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* =========================
+   STAGE PERCENTAGE
+========================= */
+
+.stage-percentage {
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stage-percentage.completed {
+    color: #1f9d55;
+}
+
+.stage-percentage.in-progress {
+    color: #e67e22;
+}
+
+.stage-percentage.not-started {
+    color: #777777;
+}
+
+.stage-percentage.blocked {
+    color: #d71920;
+}
+
+
+/* =========================
+   STAGE INFO
+========================= */
+
+.stage-date {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    margin-top: 9px;
+
+    color: #858585;
+
+    font-size: 10px;
+}
+
+.stage-date svg {
+    flex-shrink: 0;
+
+    color: #999999;
+
+    font-size: 10px;
+}
+
+.stage-department {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    margin-top: 6px;
+
+    color: #858585;
+
+    font-size: 10px;
+}
+
+.stage-department svg {
+    flex-shrink: 0;
+
+    color: #999999;
+
+    font-size: 10px;
+}
+
+
+/* =========================
+   STAGE PROGRESS
+========================= */
+
+.stage-progress {
+    margin-top: auto;
+
+    padding-top: 10px;
+}
+
+.stage-progress .progress-bar {
+    height: 4px;
+}
+
+
+/* =========================
+   ADD STAGE
+========================= */
+
+.add-stage-card {
+    min-width: 0;
+    min-height: 104px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border: 1px dashed #d1d1d1;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #e31e24;
+
+    cursor: pointer;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.add-stage-card svg {
+    font-size: 17px;
+}
+
+.add-stage-card:hover {
+    border-color: #e31e24;
+    background: #fff8f8;
+    color: #c7191e;
+}
+
+
+/* =========================
+   FOOTER
+========================= */
+
+.project-footer {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    min-height: 40px;
+
+    border-top: 1px solid #eeeeee;
+}
+
+.view-all-stages {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 9px 15px;
+
+    border: none;
+
+    background: transparent;
+
+    color: #e31e24;
+
+    cursor: pointer;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.view-all-stages svg {
+    font-size: 10px;
+}
+
+.view-all-stages:hover {
+    color: #c7191e;
+    text-decoration: underline;
+}
+
+
+/* =========================
+   EMPTY / ERROR / LOADING
+========================= */
+
+.stages-loading,
+.stages-error,
+.stages-empty {
+    padding: 45px 30px;
+
+    text-align: center;
+
+    border: 1px solid #dedede;
+    border-radius: 10px;
+
+    background: #ffffff;
+}
+
+.stages-loading {
+    color: #777777;
+    font-size: 14px;
+}
+
+.stages-error {
+    color: #d71920;
+    font-size: 14px;
+}
+
+.stages-empty svg {
+    margin-bottom: 10px;
+
+    color: #aaaaaa;
+
+    font-size: 28px;
+}
+
+.stages-empty h3 {
+    margin: 0 0 7px;
+
+    color: #333333;
+
+    font-size: 16px;
+}
+
+.stages-empty p {
+    margin: 0;
+
+    color: #999999;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1150px) {
+
+    .project-main-header {
+        gap: 20px;
+    }
+
+    .project-progress {
+        width: 280px;
+    }
+
+}
+
+
+@media (max-width: 1000px) {
+
+    .project-main-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .project-progress {
+        width: 100%;
+    }
+
+}
+
+
+@media (max-width: 800px) {
+
+    .stages-page {
+        padding: 22px 18px 30px;
+    }
+
+    .stages-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .project-filter {
+        width: 180px;
+    }
+
+    .stage-search {
+        flex: 1;
+        width: auto;
+        min-width: 220px;
+    }
+
+    .projects-count {
+        margin-left: 0;
+    }
+
+    .project-stages-row {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .stages-page-header h1 {
+        font-size: 23px;
+    }
+
+    .stages-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .project-filter,
+    .stage-search {
+        width: 100%;
+    }
+
+    .projects-count {
+        width: fit-content;
+    }
+
+    .project-main-header {
+        padding: 16px;
+    }
+
+    .project-identity {
+        align-items: flex-start;
+    }
+
+    .project-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 19px;
+    }
+
+    .project-dates {
+        flex-wrap: wrap;
+    }
+
+    .project-stages-row {
+        grid-template-columns: 1fr;
+        padding: 8px 12px 12px;
+    }
+
+}
+
+
+@media (max-width: 450px) {
+
+    .project-name-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .project-manager {
+        flex-wrap: wrap;
+    }
+
+    .stage-card {
+        min-height: 100px;
+    }
+
+}
+.stage-progress {
+    margin-top: auto;
+    padding-top: 10px;
+}
+
+.stage-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #e9e9e9;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.stage-progress-fill {
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+.stage-progress-fill.completed {
+    background: #27ae60;
+}
+
+.stage-progress-fill.in-progress {
+    background: #e67e22;
+}
+
+.stage-progress-fill.not-started {
+    background: #cfcfcf;
+}
+
+.stage-progress-fill.blocked {
+    background: #d71920;
+}

@@ -535,6 +535,7 @@ const updateTask = async (taskId, data, user) => {
     let finalBlocker;
 
     if (Status !== undefined && Status !== "Blocked") {
+        console.log("block erorr")
 
   
 
