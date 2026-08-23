@@ -57,7 +57,7 @@ const Projects = () => {
   
 
     const canCreateProject = isAdmin || isSecretary ;
-    const canEditProject = isAdmin || isProjectManager ;
+    const canEditProject = isAdmin || isPmoManager ;
     const canDeleteProject = isAdmin;
     const canAddTask =
         isAdmin || isProjectManager || isDepartmentManager;
