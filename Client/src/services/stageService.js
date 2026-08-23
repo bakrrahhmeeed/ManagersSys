@@ -32,3 +32,12 @@ export const createStage = async (data) => {
 
     return response.data;
 };
+
+export const updateStage = async (id, data) => {
+
+    const response = await api.put(
+        `/stages/${id}`,
+        data
+    );
+    return response.data;
+};

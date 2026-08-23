@@ -53,12 +53,16 @@ const Projects = () => {
     const isSecretary = role === "secretary";
     const isProjectManager = role === "project manager";
     const isDepartmentManager = role === "department manager";
+    const isPmoManager = role === "pmo manager"
+  
 
-    const canCreateProject = isAdmin || isSecretary;
-    const canEditProject = isAdmin || isSecretary;
+    const canCreateProject = isAdmin || isSecretary ;
+    const canEditProject = isAdmin || isProjectManager ;
     const canDeleteProject = isAdmin;
     const canAddTask =
         isAdmin || isProjectManager || isDepartmentManager;
+
+    const canaddcomment = isAdmin || isProjectManager || isPmoManager
 
     const [activeTab, setActiveTab] = useState("all");
 
@@ -607,23 +611,22 @@ const Projects = () => {
                                                                 </div>
 
                                                                 <div className="project-menu-wrapper">
-                                                                    <button
-                                                                        className="project-menu-btn"
-                                                                        onClick={(
-                                                                            e
-                                                                        ) => {
-                                                                            e.stopPropagation();
+{(canEditProject || canAddTask || canaddcomment) && (
+    <button
+        className="project-menu-btn"
+        onClick={(e) => {
+            e.stopPropagation();
 
-                                                                            setOpenMenu(
-                                                                                openMenu ===
-                                                                                    project.ProjectID
-                                                                                    ? null
-                                                                                    : project.ProjectID
-                                                                            );
-                                                                        }}
-                                                                    >
-                                                                        <FaEllipsisV />
-                                                                    </button>
+            setOpenMenu(
+                openMenu === project.ProjectID
+                    ? null
+                    : project.ProjectID
+            );
+        }}
+    >
+        <FaEllipsisV />
+    </button>
+)}
 
                                                                     {openMenu ===
                                                                         project.ProjectID && (
@@ -659,8 +662,8 @@ const Projects = () => {
                                                                                     Task
                                                                                 </button>
                                                                             )}
-
-                                                                            <button
+                                                                    {canaddcomment &&(
+                                                                        <button
                                                                                 onClick={(
                                                                                     e
                                                                                 ) => {
@@ -675,6 +678,8 @@ const Projects = () => {
                                                                                 <FaComment />
                                                                                 Comment
                                                                             </button>
+                                                                    )}
+                                                                            
 
                                                                         </div>
                                                                     )}

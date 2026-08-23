@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { getProjects } from "../services/projectService";
-import { getUsers } from "../services/userService";
+import { getUsersByDepartment } from "../services/tasksService";
 import { getStagesByProject } from "../services/stageService";
 import { createTask } from "../services/tasksService";
 
@@ -19,7 +19,6 @@ const AddTask = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // If coming from Project -> Add Task
     const projectIdFromUrl = searchParams.get("projectId");
 
     const [projects, setProjects] = useState([]);
@@ -57,11 +56,7 @@ const AddTask = () => {
                 setLoading(true);
                 setError("");
 
-                const [projectsResponse, usersResponse] =
-                    await Promise.all([
-                        getProjects(),
-                        getUsers(),
-                    ]);
+                const projectsResponse = await getProjects();
 
                 /*
                 Projects API:
@@ -77,11 +72,7 @@ const AddTask = () => {
 
                 setProjects(normalizedProjects);
 
-                setUsers(
-                    Array.isArray(usersResponse)
-                        ? usersResponse
-                        : usersResponse?.users || []
-                );
+
             } catch (err) {
                 console.error("Failed to load Add Task data:", err);
 
@@ -121,7 +112,7 @@ const AddTask = () => {
                 setStages(
                     Array.isArray(result)
                         ? result
-                        : result?.stages || []
+                        : result?.Stages || []
                 );
 
                 /*
@@ -175,6 +166,43 @@ const AddTask = () => {
         ? selectedStage.DepartmentName
         : "";
 
+
+
+
+
+
+        useEffect(() => {
+    const loadUsersByDepartment = async () => {
+
+        if (!selectedStage?.DepartmentID) {
+            setUsers([]);
+            return;
+        }
+
+        try {
+            const result = await getUsersByDepartment(
+                selectedStage.DepartmentID
+            );
+
+            setUsers(
+                Array.isArray(result)
+                    ? result
+                    : result?.users || []
+            );
+
+        } catch (err) {
+            console.error(
+                "Failed to load users by department:",
+                err
+            );
+
+            setUsers([]);
+        }
+    };
+
+    loadUsersByDepartment();
+
+}, [selectedStage?.DepartmentID]);
     /*
     =========================================================
         HANDLE INPUT

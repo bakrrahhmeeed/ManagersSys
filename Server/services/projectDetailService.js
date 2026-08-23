@@ -6,7 +6,8 @@ const projectdetails = async (id, user) => {
 
     if (
         user.RoleName !== Roles.ADMIN &&
-        user.RoleName !== Roles.PMO_MANAGER
+        user.RoleName !== Roles.PMO_MANAGER &&
+        user.RoleName !== Roles.SECRETARY
     ) {
 
 

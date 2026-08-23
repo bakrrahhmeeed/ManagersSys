@@ -22,6 +22,8 @@ const EditTask = () => {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
+    const [isCompleted, setIsCompleted] = useState(false);
+
     const [task, setTask] = useState(null);
     const [departmentUsers, setDepartmentUsers] = useState([]);
 
@@ -32,7 +34,6 @@ const EditTask = () => {
         priority: "",
         Status: "",
         DueDate: "",
-        CompletedDate: "",
         Blocker: "",
     });
 
@@ -55,32 +56,32 @@ const EditTask = () => {
 
             setTask(taskData);
 
+if (taskData.Status === "Completed") {
+    setIsCompleted(true);
+}
+
             // Get active users from the task's department
             const users = await getUsersByDepartment(
                 taskData.DepartmentID
             );
 
             setDepartmentUsers(users || []);
-
-            setForm({
-                TaskTitle: taskData.TaskTitle || "",
-                TaskDescription: taskData.TaskDescription || "",
-                AssignedToUserID:
-                    taskData.AssignedToUserID ||
-                    taskData.AssignedTo ||
-                    "",
-                priority:
-                    taskData.PriorityLevel || "",
-                Status:
-                    taskData.Status || "",
-                DueDate: taskData.DueDate
-                    ? taskData.DueDate.substring(0, 10)
-                    : "",
-                CompletedDate: taskData.CompletedDate
-                    ? taskData.CompletedDate.substring(0, 10)
-                    : "",
-                Blocker: taskData.Blocker || "",
-            });
+setForm({
+    TaskTitle: taskData.TaskTitle || "",
+    TaskDescription: taskData.TaskDescription || "",
+    AssignedToUserID:
+        taskData.AssignedToUserID ||
+        taskData.AssignedTo ||
+        "",
+    priority:
+        taskData.PriorityLevel || "",
+    Status:
+        taskData.Status || "",
+    DueDate: taskData.DueDate
+        ? taskData.DueDate.substring(0, 10)
+        : "",
+    Blocker: taskData.Blocker || "",
+});
         } catch (err) {
             console.error(err);
 
@@ -234,6 +235,38 @@ const EditTask = () => {
             </div>
         );
     }
+
+
+
+    if (isCompleted) {
+    return (
+        <div className="edit-task-page">
+            <div className="edit-task-error">
+
+                <FaExclamationTriangle />
+
+                <h2>
+                    Task Cannot Be Edited
+                </h2>
+
+                <p>
+                    This task is already completed and cannot be modified.
+                </p>
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        navigate(`/tasks/${taskId}`)
+                    }
+                >
+                    <FaArrowLeft />
+                    Back to Task
+                </button>
+
+            </div>
+        </div>
+    );
+}
 
     return (
         <div className="edit-task-page">

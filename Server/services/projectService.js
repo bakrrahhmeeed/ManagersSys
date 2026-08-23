@@ -273,7 +273,8 @@ const getprojects = async (user) => {
 
     if (
         user.RoleName === Roles.ADMIN ||
-        user.RoleName === Roles.PMO_MANAGER
+        user.RoleName === Roles.PMO_MANAGER ||
+        user.RoleName === Roles.SECRETARY
     ) {
 
         result = await sql.query`
@@ -398,7 +399,8 @@ const getprojectsById = async (id, user) => {
 
     if (
         user.RoleName === Roles.ADMIN ||
-        user.RoleName === Roles.PMO_MANAGER
+        user.RoleName === Roles.PMO_MANAGER ||
+        user.RoleName === Roles.SECRETARY
     ) {
 
         result = await sql.query`

@@ -20,7 +20,7 @@ import {
 } from "react-icons/fa";
 
 import Header from "../components/Header";
-import { getUserById } from "../services/userService";
+import { getUserById , updateUserActiveStatus } from "../services/userService";
 
 import "../styles/UserDetails.css";
 
@@ -35,6 +35,76 @@ const UserDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+        const getCurrentUserRole = () => {
+        try {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                const storedRole = user.roleName || "";
+                if (storedRole) return storedRole;
+            }
+
+            const token = localStorage.getItem("token");
+            if (!token) return "";
+
+            const tokenPart = token.split(".")[1];
+            if (!tokenPart) return "";
+
+            const base64 = tokenPart
+                .replace(/-/g, "+")
+                .replace(/_/g, "/")
+                .padEnd(Math.ceil(tokenPart.length / 4) * 4, "=");
+
+            const payload = JSON.parse(atob(base64));
+
+            return payload.roleName || "";
+        } catch {
+            return "";
+        }
+    };
+
+
+        const currentUserRole = getCurrentUserRole();
+    const canEditUser = [
+        "administrator",
+    ].includes(String(currentUserRole).trim().toLowerCase());
+
+
+    const handleToggleActive = async () => {
+    const newStatus = !user.IsActive;
+
+    const confirmed = window.confirm(
+        `Are you sure you want to ${newStatus ? "activate" : "deactivate"} this user?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        await updateUserActiveStatus(
+            user.UserID,
+            newStatus
+        );
+
+        setUser((prev) => ({
+            ...prev,
+            IsActive: newStatus
+        }));
+
+    } catch (error) {
+        console.error(
+            "UPDATE USER ACTIVE STATUS ERROR:",
+            error
+        );
+
+        alert(
+            error.response?.data?.message ||
+            "Failed to update user active status."
+        );
+    }
+};
+
     useEffect(() => {
         const fetchUserDetails = async () => {
             try {
@@ -43,7 +113,6 @@ const UserDetails = () => {
 
                 const result = await getUserById(id);
 
-                console.log("User Details API:", result);
 
                 setUser(result?.user || null);
                 setProjects(
@@ -663,45 +732,43 @@ const UserDetails = () => {
                         </div>
 
 
-                        <div className="user-info-item">
+                       <div
+    className="user-info-item"
+    onClick={handleToggleActive}
+    style={{ cursor: "pointer" }}
+>
+    <div
+        className={`info-icon ${
+            user.IsActive
+                ? "green"
+                : "gray"
+        }`}
+    >
+        {user.IsActive ? (
+            <FaCheckCircle />
+        ) : (
+            <FaTimesCircle />
+        )}
+    </div>
 
-                            <div
-                                className={`info-icon ${
-                                    user.IsActive
-                                        ? "green"
-                                        : "gray"
-                                }`}
-                            >
+    <div>
+        <span>
+            Account Status
+        </span>
 
-                                {user.IsActive ? (
-                                    <FaCheckCircle />
-                                ) : (
-                                    <FaTimesCircle />
-                                )}
-
-                            </div>
-
-                            <div>
-
-                                <span>
-                                    Account Status
-                                </span>
-
-                                <strong
-                                    className={
-                                        user.IsActive
-                                            ? "green-text"
-                                            : "gray-text"
-                                    }
-                                >
-                                    {user.IsActive
-                                        ? "Active"
-                                        : "Inactive"}
-                                </strong>
-
-                            </div>
-
-                        </div>
+        <strong
+            className={
+                user.IsActive
+                    ? "green-text"
+                    : "gray-text"
+            }
+        >
+            {user.IsActive
+                ? "Active"
+                : "Inactive"}
+        </strong>
+    </div>
+</div>
 
                     </div>
 
@@ -1180,7 +1247,7 @@ const UserDetails = () => {
                         Back to Users
                     </button>
 
-
+{canEditUser&&(
                     <button
                         className="edit-user-bottom-btn"
                         onClick={() =>
@@ -1191,7 +1258,7 @@ const UserDetails = () => {
                     >
                         <FaEdit />
                         Edit User
-                    </button>
+                    </button>)}
 
                 </div>
 

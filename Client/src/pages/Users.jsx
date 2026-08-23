@@ -30,6 +30,43 @@ function Users() {
     const [error, setError] = useState("");
     const [deletingId, setDeletingId] = useState(null);
 
+        const getCurrentUserRole = () => {
+        try {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                const storedRole = user.roleName || "";
+                if (storedRole) return storedRole;
+            }
+
+            const token = localStorage.getItem("token");
+            if (!token) return "";
+
+            const tokenPart = token.split(".")[1];
+            if (!tokenPart) return "";
+
+            const base64 = tokenPart
+                .replace(/-/g, "+")
+                .replace(/_/g, "/")
+                .padEnd(Math.ceil(tokenPart.length / 4) * 4, "=");
+
+            const payload = JSON.parse(atob(base64));
+
+            return payload.roleName || "";
+        } catch {
+            return "";
+        }
+    };
+
+        const currentUserRole = getCurrentUserRole();
+    const canAddUser = [
+        "administrator",
+    ].includes(String(currentUserRole).trim().toLowerCase());
+
+    const canEditUser =[
+        "administrator",
+    ].includes(String(currentUserRole).trim().toLowerCase());
+
     const loadUsers = async () => {
         try {
             setLoading(true);
@@ -171,14 +208,14 @@ function Users() {
                             Manage and view system users
                         </p>
                     </div>
-
+{canAddUser&&(
                     <button
                         className="add-user-btn"
                         onClick={() => navigate("/users/create")}
                     >
                         <FaPlus />
                         Add User
-                    </button>
+                    </button>)}
                 </div>
 
 
@@ -304,7 +341,7 @@ function Users() {
                                                 <FaEye />
                                             </button>
 
-                                            <button
+                                           {canEditUser&&( <button
                                                 className="user-action edit"
                                                 onClick={() =>
                                                     navigate(
@@ -314,9 +351,9 @@ function Users() {
                                                 title="Edit"
                                             >
                                                 <FaEdit />
-                                            </button>
+                                            </button>)}
 
-                                            <button
+                                        {canEditUser&&(    <button
                                                 className="user-action delete"
                                                 onClick={() =>
                                                     handleDelete(user)
@@ -328,7 +365,7 @@ function Users() {
                                                 title="Delete"
                                             >
                                                 <FaTrash />
-                                            </button>
+                                            </button>)}
 
                                         </div>
 

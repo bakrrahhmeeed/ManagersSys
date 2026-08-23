@@ -1,0 +1,350 @@
+.edit-stage-page {
+    min-height: 100vh;
+    background: #f7f9fc;
+}
+
+.edit-stage-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 36px 28px 60px;
+}
+
+.edit-stage-topbar {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.edit-stage-back {
+    width: 42px;
+    height: 42px;
+    border: 1px solid #e2e7ee;
+    background: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #475569;
+    transition: 0.2s ease;
+}
+
+.edit-stage-back:hover {
+    background: #f1f5f9;
+    transform: translateX(-2px);
+}
+
+.edit-stage-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.edit-stage-breadcrumb span {
+    color: #cbd5e1;
+}
+
+.edit-stage-topbar h1 {
+    margin: 0;
+    color: #172033;
+    font-size: 30px;
+    font-weight: 750;
+}
+
+.edit-stage-topbar p {
+    margin: 7px 0 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.edit-stage-alert {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.edit-stage-alert.error {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+}
+
+.edit-stage-alert.success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+.edit-stage-card {
+    background: #ffffff;
+    border: 1px solid #e5eaf0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+}
+
+.edit-stage-section {
+    padding: 30px;
+}
+
+.edit-stage-section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #edf0f4;
+    margin-bottom: 26px;
+}
+
+.edit-stage-section-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: #fff1f2;
+    color: #e31b23;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.edit-stage-section-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #172033;
+}
+
+.edit-stage-section-header p {
+    margin: 4px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.edit-stage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.edit-stage-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-stage-field.full {
+    grid-column: 1 / -1;
+}
+
+.edit-stage-field label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.edit-stage-field label svg {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.edit-stage-field input,
+.edit-stage-field select,
+.edit-stage-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dfe5ec;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #172033;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s ease;
+}
+
+.edit-stage-field input,
+.edit-stage-field select {
+    height: 45px;
+    padding: 0 13px;
+}
+
+.edit-stage-field textarea {
+    padding: 12px 13px;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.edit-stage-field input:focus,
+.edit-stage-field select:focus,
+.edit-stage-field textarea:focus {
+    border-color: #e31b23;
+    box-shadow: 0 0 0 3px rgba(227, 27, 35, 0.08);
+}
+
+.edit-stage-field input::placeholder,
+.edit-stage-field textarea::placeholder {
+    color: #a8b2c0;
+}
+
+.edit-stage-field select:disabled {
+    background: #f8fafc;
+    cursor: not-allowed;
+}
+
+.edit-stage-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 30px;
+    border-top: 1px solid #edf0f4;
+    background: #fbfcfe;
+}
+
+.edit-stage-cancel,
+.edit-stage-save {
+    height: 43px;
+    border-radius: 9px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.edit-stage-cancel {
+    border: 1px solid #dfe5ec;
+    background: #ffffff;
+    color: #475569;
+}
+
+.edit-stage-cancel:hover {
+    background: #f8fafc;
+}
+
+.edit-stage-save {
+    border: 1px solid #e31b23;
+    background: #e31b23;
+    color: #ffffff;
+}
+
+.edit-stage-save:hover {
+    background: #c9141b;
+    border-color: #c9141b;
+}
+
+.edit-stage-save:disabled,
+.edit-stage-cancel:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.edit-stage-state {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+    color: #64748b;
+}
+
+.edit-stage-state svg {
+    font-size: 34px;
+    color: #e31b23;
+    margin-bottom: 14px;
+}
+
+.edit-stage-state h2 {
+    margin: 0 0 8px;
+    color: #172033;
+    font-size: 22px;
+}
+
+.edit-stage-state p {
+    max-width: 450px;
+    margin: 0 0 20px;
+    line-height: 1.6;
+}
+
+.edit-stage-state button {
+    border: 0;
+    border-radius: 9px;
+    background: #172033;
+    color: #ffffff;
+    height: 42px;
+    padding: 0 17px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.edit-stage-spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid #e5eaf0;
+    border-top-color: #e31b23;
+    border-radius: 50%;
+    animation: editStageSpin 0.8s linear infinite;
+    margin-bottom: 14px;
+}
+
+@keyframes editStageSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+
+    .edit-stage-container {
+        padding: 25px 16px 40px;
+    }
+
+    .edit-stage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-stage-field.full {
+        grid-column: auto;
+    }
+
+    .edit-stage-section {
+        padding: 22px;
+    }
+
+    .edit-stage-footer {
+        padding: 18px 22px;
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .edit-stage-cancel,
+    .edit-stage-save {
+        width: 100%;
+    }
+
+    .edit-stage-topbar h1 {
+        font-size: 25px;
+    }
+}

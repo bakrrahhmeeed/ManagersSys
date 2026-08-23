@@ -17,6 +17,7 @@ import EditTaskEmb from "./pages/EditTaskEmb";
 import ProjectUpdate from "./pages/ProjectUpdate";
 import StageWithProjects from "./pages/stagewithprojects";
 import CreateStage from "./pages/CreateStage";
+import EditStage from "./pages/EditStage";
 
 
 function App() {
@@ -59,6 +60,8 @@ function App() {
         <Route path="/stages" element={  <StageWithProjects />}/>
 
         <Route path="/stages/add" element={<CreateStage />}/>
+
+        <Route path="/stages/:id/edit" element={<EditStage />}/>
 
       </Routes>
     </BrowserRouter>

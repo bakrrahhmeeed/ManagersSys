@@ -139,8 +139,15 @@ const handleAddComment = async () => {
     const currentUserRole = getCurrentUserRole();
     const canEditProject = [
         "administrator",
-        "secretary",
+        "project manager",
     ].includes(String(currentUserRole).trim().toLowerCase());
+
+    const canaddcomments = [
+    "administrator",
+    "project manager",
+    "pmo manager"
+    ].includes(String(currentUserRole).trim().toLowerCase());
+    
     const stages = data?.stages || [];
     const updates = data?.updates || [];
     const issues = data?.issues || [];
@@ -1017,11 +1024,11 @@ const handleAddComment = async () => {
     className="details-section comments-section"
 >
     <div className="section-header">
+ 
         <div>
             <h2>
                 Comments
-
-                <button
+{canaddcomments && (               <button
                     type="button"
                     onClick={() =>
                         setShowCommentInput(prev => !prev)
@@ -1031,7 +1038,8 @@ const handleAddComment = async () => {
                     {showCommentInput
                         ? "Cancel"
                         : "Add Comment"}
-                </button>
+                </button>)} 
+
             </h2>
 
             <p>

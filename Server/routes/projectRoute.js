@@ -27,8 +27,7 @@ router.post  ("/",authorizeRoles(
 ),createProjectValidation,createproject);
 router.put   ("/:id",authorizeRoles(
     Roles.ADMIN,
-    Roles.PMO_MANAGER,
-    Roles.SECRETARY
+    Roles.PMO_MANAGER
 ),updateProjectValidation, updateProject);
 router.delete("/:id",authorizeRoles(
     Roles.ADMIN

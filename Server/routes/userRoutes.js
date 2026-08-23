@@ -6,14 +6,15 @@ const updateuservalidation = require("../middleware/updateUserValidation")
 const Roles = require("../constants/roles")
 
 const { 
-    getuser , addUser , updateUser , deleteUser , getuserById , updateUserPss , getProjectmanagers , getUsersByDepartment , getBranchAndRole
+    getuser , addUser , updateUser , deleteUser , getuserById , updateUserPss , getProjectmanagers , getUsersByDepartment , getBranchAndRole , updateUserActiveStatus
 } = require("../controllers/userController");
 const { getRounds } = require("bcrypt");
 
 router.get("/",authorizeRoles(
     Roles.ADMIN,
     Roles.DEPARTMENT_MANAGER,
-    Roles.PMO_MANAGER
+    Roles.PMO_MANAGER,
+    Roles.PROJECT_MANAGER
 ), getuser);
 
 router.get("/options" , authorizeRoles(Roles.ADMIN , Roles.DEPARTMENT_MANAGER , Roles.SECRETARY , Roles.PROJECT_MANAGER) , getBranchAndRole)
@@ -40,13 +41,11 @@ router.put("/pass/:id",updateUserPss);
 
 router.delete("/deletuser/:id", authorizeRoles(Roles.ADMIN),deleteUser);
 
-router.get(
+router.get("/department/:departmentId",getUsersByDepartment);
 
-    "/department/:departmentId",
+router.put("/update/active/:id" , authorizeRoles(Roles.ADMIN , Roles.DEPARTMENT_MANAGER ), updateUserActiveStatus)
 
-    getUsersByDepartment
 
-);
 
 
 

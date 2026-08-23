@@ -39,7 +39,7 @@ const deleteStage = async (req, res, next) => {
 const getStage = async (req, res, next) => {
     try {
         const stageId = req.params.id;
-        const result = await stageService.getStage(stageId);
+        const result = await stageService.getStage(stageId , req.user);
         res.status(200).json(result);
     } catch (error) {
         next(error);

@@ -195,13 +195,24 @@ const StageWithProjects = () => {
     };
 
 
-    const handleStageClick = (stageId) => {
+    // const handleStageClick = (stageId) => {
 
-        navigate(
-            `/stages/${stageId}`
-        );
+    //     navigate(
+    //         `/stages/${stageId}`
+    //     );
 
-    };
+    // };
+
+
+    const handleEditStage = (e, stageId) => {
+
+    e.stopPropagation();
+
+    navigate(
+        `/stages/${stageId}/edit`
+    );
+
+};
 
 
     const handleAddStage = (projectId) => {
@@ -604,7 +615,7 @@ const StageWithProjects = () => {
 
                                                 return (
 
-                                                    <button
+                                                    <div
                                                         type="button"
                                                         className="stage-card"
                                                         key={
@@ -619,31 +630,46 @@ const StageWithProjects = () => {
 
                                                         <div className="stage-card-header">
 
-                                                            <div
-                                                                className={`stage-order ${stageProgressClass}`}
-                                                            >
-                                                                {
-                                                                    stage.StageOrder
-                                                                }
-                                                            </div>
+    <div
+        className={`stage-order ${stageProgressClass}`}
+    >
+        {
+            stage.StageOrder
+        }
+    </div>
 
+    <h4>
+        {
+            stage.StageName
+        }
+    </h4>
 
-                                                            <h4>
-                                                                {
-                                                                    stage.StageName
-                                                                }
-                                                            </h4>
+    <div className="stage-card-actions">
 
+        <strong
+            className={`stage-percentage ${stageProgressClass}`}
+        >
+            {
+                stageProgress
+            }%
+        </strong>
 
-                                                            <strong
-                                                                className={`stage-percentage ${stageProgressClass}`}
-                                                            >
-                                                                {
-                                                                    stageProgress
-                                                                }%
-                                                            </strong>
+        <button
+            type="button"
+            className="stage-edit-btn"
+            onClick={(e) =>
+                handleEditStage(
+                    e,
+                    stage.StageID
+                )
+            }
+        >
+            Edit
+        </button>
 
-                                                        </div>
+    </div>
+
+</div>
 
 
                                                         <div className="stage-date">
@@ -682,7 +708,7 @@ const StageWithProjects = () => {
 
 
 
-                                                    </button>
+                                                    </div>
 
                                                 );
 

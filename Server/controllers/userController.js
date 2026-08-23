@@ -95,6 +95,24 @@ const getUsersByDepartment = async (req, res, next) => {
   }
 
 
+ const updateUserActiveStatus = async (req, res, next) => {
+    try {
+
+        const result = await userService.updateUserActiveStatus(
+            req.params.id,
+            req.body.isActive,
+            req.user
+        );
+
+        res.status(200).json(result);
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+
   module.exports = {
     getuser,
     addUser,
@@ -104,5 +122,6 @@ const getUsersByDepartment = async (req, res, next) => {
     updateUserPss,
     getProjectmanagers,
     getUsersByDepartment,
-    getBranchAndRole
+    getBranchAndRole,
+    updateUserActiveStatus
   };

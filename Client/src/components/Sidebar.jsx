@@ -60,7 +60,7 @@ const Sidebar = () => {
               {
                 title: "New Project",
                 path: "/projects/add",
-                icon: <FaPlus />,
+                // icon: <FaPlus />,
               },
             ]
           : []),
@@ -77,14 +77,20 @@ const Sidebar = () => {
         ]
       : []),
 
-    {
-      title: "Tasks",
-      path: "/tasks",
-      icon: <FaTasks />,
-    },
+...(role !== "secretary"
+  ? [
+      {
+        title: "Tasks",
+        path: "/tasks",
+        icon: <FaTasks />,
+      },
+    ]
+  : []),
   ];
 
- if (role === "administrator") {
+ if (role === "administrator" || role === "pmo manager" ||
+    role === "project manager" ||
+    role === "department manager") {
   menuItems.push({
     title: "Users",
     path: "/users",

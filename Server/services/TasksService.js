@@ -6,7 +6,7 @@ const getAllTasks = async (user) => {
 
 
 
-    if (user.RoleName === Roles.ADMIN) {
+    if (user.RoleName === Roles.ADMIN || user.RoleName === Roles.PMO_MANAGER) {
 
         const result = await sql.query`
             SELECT
@@ -230,7 +230,6 @@ const createTask = async (data, user) => {
 
 
 
-
     const project = await sql.query`
         SELECT
             ProjectID,
@@ -244,6 +243,21 @@ const createTask = async (data, user) => {
         error.statusCode = 404;
         throw error;
     }
+
+
+
+        const checkStage = await sql.query`
+    SELECT STATUS FROM PROJECTSTAGES WHERE STAGEID = ${StageID}`
+
+    const stagestatus = checkStage.recordset[0]
+    console.log(stagestatus.STATUS)
+
+    if(stagestatus.STATUS === "Not Started"){
+        throw new Error("Stage Status is 'Not Started' Please check and try again");
+        error.statusCode = 400;
+        throw error;
+    }
+    
 
     const projectData = project.recordset[0];
 
@@ -438,12 +452,9 @@ const updateTask = async (taskId, data, user) => {
         priority,
         Status,
         DueDate,
-        CompletedDate,
         Blocker
     } = data;
 
-
- 
 
     const existingTask = await sql.query`
         SELECT *
@@ -451,18 +462,31 @@ const updateTask = async (taskId, data, user) => {
         WHERE TaskID = ${taskId}
     `;
 
+
     if (existingTask.recordset.length === 0) {
 
         const error = new Error("Task not found.");
         error.statusCode = 404;
         throw error;
-
     }
+
 
     const currentTask = existingTask.recordset[0];
 
-    const departmentId = currentTask.DepartmentID;
 
+    if (currentTask.Status === "Completed") {
+
+        const error = new Error(
+            "Completed tasks cannot be modified."
+        );
+
+        error.statusCode = 403;
+        throw error;
+    }
+
+
+    const departmentId =
+        currentTask.DepartmentID;
 
 
     if (user.RoleName === Roles.PROJECT_MANAGER) {
@@ -473,6 +497,7 @@ const updateTask = async (taskId, data, user) => {
             WHERE ProjectID = ${currentTask.ProjectID}
             AND ProjectManagerID = ${user.UserID}
         `;
+
 
         if (project.recordset.length === 0) {
 
@@ -486,11 +511,12 @@ const updateTask = async (taskId, data, user) => {
     }
 
 
-  
-
     if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
 
-        if (departmentId !== user.DepartmentID) {
+        if (
+            departmentId !==
+            user.DepartmentID
+        ) {
 
             const error = new Error(
                 "You can only update tasks belonging to your department."
@@ -502,67 +528,26 @@ const updateTask = async (taskId, data, user) => {
     }
 
 
-
     const finalStatus =
         Status ?? currentTask.Status;
-
 
 
     const finalDueDate =
         DueDate ?? currentTask.DueDate;
 
 
-    let finalCompletedDate;
-
-    if (Status !== undefined && Status !== "Completed") {
-
-        finalCompletedDate = null;
-
-    } else if (CompletedDate !== undefined) {
-
-        finalCompletedDate = CompletedDate;
-
-    } else {
+    const allowedStatuses = [
+        "Not Started",
+        "In Progress",
+        "Blocked",
+        "Completed"
+    ];
 
 
-
-        finalCompletedDate = currentTask.CompletedDate;
-    }
-
-
-
-
-    let finalBlocker;
-
-    if (Status !== undefined && Status !== "Blocked") {
-        console.log("block erorr")
-
-  
-
-        finalBlocker = null;
-
-    } else if (Blocker !== undefined) {
-
-
-
-        finalBlocker = Blocker;
-
-    } else {
-
-
-        finalBlocker = currentTask.Blocker;
-    }
-
-
-  
-
-    if (
-        finalStatus === "Completed" &&
-        !finalCompletedDate
-    ) {
+    if (!allowedStatuses.includes(finalStatus)) {
 
         const error = new Error(
-            "Completed date must be provided when marking a task as completed."
+            "Invalid task status."
         );
 
         error.statusCode = 400;
@@ -570,35 +555,36 @@ const updateTask = async (taskId, data, user) => {
     }
 
 
-    if (
-        finalStatus !== "Completed" &&
-        finalCompletedDate
-    ) {
+    let finalCompletedDate = null;
 
-        const error = new Error(
-            "Completed date should only be set when the task is marked as completed."
-        );
 
-        error.statusCode = 400;
-        throw error;
+    if (finalStatus === "Completed") {
+        finalCompletedDate = new Date();
     }
 
 
+    let finalBlocker = null;
 
-    if (
-        finalStatus !== "Blocked" &&
-        finalBlocker
-    ) {
 
-        const error = new Error(
-            "Blocker must be empty when task status is not Blocked."
-        );
+    if (finalStatus === "Blocked") {
 
-        error.statusCode = 400;
-        throw error;
+        if (
+            typeof Blocker !== "string" ||
+            !Blocker.trim()
+        ) {
+
+            const error = new Error(
+                "Blocker description is required when task is blocked."
+            );
+
+            error.statusCode = 400;
+            throw error;
+        }
+
+
+        finalBlocker =
+            Blocker.trim();
     }
-
-
 
 
     if (AssignedToUserID !== undefined) {
@@ -611,7 +597,10 @@ const updateTask = async (taskId, data, user) => {
             AND IsActive = 1
         `;
 
-        if (assignedUser.recordset.length === 0) {
+
+        if (
+            assignedUser.recordset.length === 0
+        ) {
 
             const error = new Error(
                 "Assigned user must belong to the task department."
@@ -621,8 +610,6 @@ const updateTask = async (taskId, data, user) => {
             throw error;
         }
     }
-
-
 
 
     await sql.query`
@@ -654,10 +641,7 @@ const updateTask = async (taskId, data, user) => {
                 ),
 
             Status =
-                COALESCE(
-                    ${finalStatus},
-                    Status
-                ),
+                ${finalStatus},
 
             DueDate =
                 COALESCE(
@@ -673,8 +657,6 @@ const updateTask = async (taskId, data, user) => {
 
         WHERE TaskID = ${taskId}
     `;
-
-
 
 
     const updatedTask = await sql.query`
@@ -722,6 +704,7 @@ const updateTaskEmbloyee = async (taskId, data, user) => {
     const currentTask = existingTask.recordset[0];
 
 
+
     if (currentTask.AssignedTo !== user.UserID) {
 
         const error = new Error(
@@ -731,6 +714,18 @@ const updateTaskEmbloyee = async (taskId, data, user) => {
         error.statusCode = 403;
         throw error;
     }
+
+
+    if (currentTask.Status === "Completed") {
+
+        const error = new Error(
+            "Completed tasks cannot be updated."
+        );
+
+        error.statusCode = 403;
+        throw error;
+    }
+
 
 
     const finalStatus =
@@ -758,43 +753,17 @@ const updateTaskEmbloyee = async (taskId, data, user) => {
     }
 
 
-    let finalCompletedDate;
 
 
-    if (finalStatus === "Completed") {
-
-        finalCompletedDate = new Date();
-
-    } else {
-
-        finalCompletedDate = null;
-    }
-
-
-    let finalBlocker;
+    let finalBlocker = null;
 
 
     if (finalStatus === "Blocked") {
 
-        if (Blocker !== undefined && Blocker !== null) {
-
-            if (typeof Blocker !== "string" || !Blocker.trim()) {
-
-                const error = new Error(
-                    "Blocker description is required when task is blocked."
-                );
-
-                error.statusCode = 400;
-                throw error;
-            }
-
-            finalBlocker = Blocker.trim();
-
-        } else if (currentTask.Status === "Blocked" && currentTask.Blocker) {
-
-            finalBlocker = currentTask.Blocker;
-
-        } else {
+        if (
+            typeof Blocker !== "string" ||
+            !Blocker.trim()
+        ) {
 
             const error = new Error(
                 "Blocker description is required when task is blocked."
@@ -804,9 +773,8 @@ const updateTaskEmbloyee = async (taskId, data, user) => {
             throw error;
         }
 
-    } else {
 
-        finalBlocker = null;
+        finalBlocker = Blocker.trim();
     }
 
 
@@ -815,11 +783,21 @@ const updateTaskEmbloyee = async (taskId, data, user) => {
         UPDATE ProjectTasks
         SET
             Status = ${finalStatus},
-            CompletedDate = ${finalCompletedDate},
+
+            CompletedDate =
+                CASE
+                    WHEN ${finalStatus} = 'Completed'
+                        THEN GETDATE()
+                    ELSE NULL
+                END,
+
             Blocker = ${finalBlocker}
+
         WHERE TaskID = ${taskId}
         AND AssignedTo = ${user.UserID}
     `;
+
+
 
 
     const updatedTask = await sql.query`
@@ -846,6 +824,7 @@ const updateTaskEmbloyee = async (taskId, data, user) => {
 
         WHERE t.TaskID = ${taskId}
     `;
+
 
     return {
         message: "Task status updated successfully.",
@@ -877,7 +856,7 @@ const getTask = async (taskId, user) => {
 
 
 
-    if (user.RoleName === Roles.ADMIN) {
+    if (user.RoleName === Roles.ADMIN || user.RoleName === Roles.PMO_MANAGER) {
 
         result = await sql.query`
             SELECT

@@ -23,10 +23,7 @@ const EditTaskEmb = () => {
 
     const navigate = useNavigate();
 
-
-    // =========================================================
-    // STATES
-    // =========================================================
+    const [isCompleted, setIsCompleted] = useState(false);
 
     const [task, setTask] = useState(null);
 
@@ -47,7 +44,6 @@ const EditTaskEmb = () => {
 
         Status: "",
 
-        CompletedDate: "",
 
         Blocker: "",
 
@@ -96,6 +92,24 @@ const EditTaskEmb = () => {
 
             setTask(taskData);
 
+            if (taskData.Status === "Completed") {
+
+    setIsCompleted(true);
+
+} else {
+
+    setIsCompleted(false);
+}
+
+//             if (taskData.Status === "Completed") {
+
+//     setError(
+//         "This task is already completed and cannot be edited."
+//     );
+
+//     return;
+// }
+
 
             // =====================================================
             // SET FORM
@@ -105,14 +119,6 @@ const EditTaskEmb = () => {
 
                 Status:
                     taskData.Status || "",
-
-                CompletedDate:
-                    taskData.CompletedDate
-                        ? taskData.CompletedDate.substring(
-                            0,
-                            10
-                        )
-                        : "",
 
                 Blocker:
                     taskData.Blocker || "",
@@ -144,6 +150,7 @@ const EditTaskEmb = () => {
     };
 
 
+
     // =========================================================
     // HANDLE STATUS
     // =========================================================
@@ -159,20 +166,6 @@ const EditTaskEmb = () => {
 
             Status: value,
 
-            /*
-             * CompletedDate only belongs
-             * to Completed status.
-             */
-
-            CompletedDate:
-                value === "Completed"
-                    ? prev.CompletedDate
-                    : "",
-
-            /*
-             * Blocker only belongs
-             * to Blocked status.
-             */
 
             Blocker:
                 value === "Blocked"
@@ -236,22 +229,7 @@ const EditTaskEmb = () => {
         }
 
 
-        // =====================================================
-        // COMPLETED VALIDATION
-        // =====================================================
 
-        if (
-            form.Status === "Completed" &&
-            !form.CompletedDate
-        ) {
-
-            setError(
-                "Completed date is required."
-            );
-
-            return;
-
-        }
 
 
         // =====================================================
@@ -287,11 +265,6 @@ const EditTaskEmb = () => {
 
                     Status:
                         form.Status,
-
-                    CompletedDate:
-                        form.Status === "Completed"
-                            ? form.CompletedDate
-                            : null,
 
                     Blocker:
                         form.Status === "Blocked"
@@ -372,6 +345,39 @@ const EditTaskEmb = () => {
     // =========================================================
 
     if (!task) {
+
+if (isCompleted) {
+
+    return (
+        <div className="edit-task-page">
+
+            <div className="edit-task-error">
+
+                <FaExclamationTriangle />
+
+                <h2>
+                    Task Cannot Be Edited
+                </h2>
+
+                <p>
+                    This task is already completed and cannot be edited.
+                </p>
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        navigate(`/tasks/${taskId}`)
+                    }
+                >
+                    <FaArrowLeft />
+                    Back to Task
+                </button>
+
+            </div>
+
+        </div>
+    );
+}
 
         return (
 
@@ -669,38 +675,6 @@ const EditTaskEmb = () => {
 
                         </div>
 
-
-                        {/* =================================================
-                            COMPLETED DATE
-                        ================================================= */}
-
-                        <div className="edit-task-field">
-
-                            <label>
-
-                                <FaCalendarAlt />
-
-                                Completed Date
-
-                            </label>
-
-
-                            <input
-                                type="date"
-                                name="CompletedDate"
-                                value={
-                                    form.CompletedDate
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                                disabled={
-                                    form.Status !==
-                                    "Completed"
-                                }
-                            />
-
-                        </div>
 
 
                         {/* =================================================

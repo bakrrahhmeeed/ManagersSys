@@ -41,13 +41,48 @@ function Tasks() {
 
     const tasksPerPage = 12;
 
+
+
+            const getCurrentUserRole = () => {
+        try {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                const storedRole = user.roleName || "";
+                if (storedRole) return storedRole;
+            }
+
+            const token = localStorage.getItem("token");
+            if (!token) return "";
+
+            const tokenPart = token.split(".")[1];
+            if (!tokenPart) return "";
+
+            const base64 = tokenPart
+                .replace(/-/g, "+")
+                .replace(/_/g, "/")
+                .padEnd(Math.ceil(tokenPart.length / 4) * 4, "=");
+
+            const payload = JSON.parse(atob(base64));
+
+            return payload.roleName || "";
+        } catch {
+            return "";
+        }
+    };
+
+        const currentUserRole = getCurrentUserRole();
+    const canaddtask = [
+        "administrator",
+        "department manager",
+        "project manager"
+    ].includes(String(currentUserRole).trim().toLowerCase());
+
     /* =========================================================
        EDIT TASK
     ========================================================= */
 
     const handleEditTask = (taskId) => {
-        console.log("USER:", user);
-        console.log("ROLE:", user?.roleName);
 
         if (
             String(user?.roleName || "").toLowerCase() ===
@@ -461,7 +496,7 @@ function Tasks() {
                             Manage and track project tasks
                         </p>
                     </div>
-
+{canaddtask&&(
                     <button
                         type="button"
                         className="add-task-btn"
@@ -471,7 +506,7 @@ function Tasks() {
                     >
                         <span><FaPlus/></span>
                         Add Task
-                    </button>
+                    </button>)}
 
                 </div>
 

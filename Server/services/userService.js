@@ -4,7 +4,7 @@ const Roles = require("../constants/roles");
 
 
 
-  const getusers = async (user) => {
+const getusers = async (user) => {
     const ID = user.UserID;
     const UserName = user.UserName;
     const RoleName = user.RoleName;
@@ -59,9 +59,9 @@ LEFT JOIN dbo.Branches b
             users: result.recordset
         };
     }
-}
+};
 
-  const addUser = async (data) => {
+const addUser = async (data) => {
     const {
         fullName,
         userName,
@@ -122,9 +122,9 @@ LEFT JOIN dbo.Branches b
         userId: userId,
         userName: userName
     };
-  };
+};
 
-  const updateUser = async (id, data) => {
+const updateUser = async (id, data) => {
     const {
         fullName,
         userName,
@@ -167,9 +167,9 @@ LEFT JOIN dbo.Branches b
     }
 
     return result.recordset[0];
-  };
+};
 
-  const deleteUser = async(id )=>{
+const deleteUser = async(id )=>{
     
     
     const result = await sql.query`
@@ -180,7 +180,7 @@ LEFT JOIN dbo.Branches b
     return {
       message:"usere deleted"
     }
-  };
+};
 
 const getuserById = async (id, user) => {
 
@@ -559,7 +559,7 @@ const getuserById = async (id, user) => {
     };
 };
 
-  const getProjectmanagers = async()=>{
+const getProjectmanagers = async()=>{
     const result = await sql.query`
     SELECT u.UserID,
        u.FullName,
@@ -575,9 +575,9 @@ WHERE ur.RoleID = 3;
     `
 
     return result.recordset
-  }
+};
 
-  const getUsersByDepartment = async (departmentId) => {
+const getUsersByDepartment = async (departmentId) => {
 
     const result = await sql.query`
 
@@ -621,7 +621,43 @@ const getBranchAndRole = async () => {
 };
 
 
-  module.exports = {
+const updateUserActiveStatus = async (targetUserId, isActive, user) => {
+
+    if (user.RoleName !== Roles.DEPARTMENT_MANAGER ) {
+        const error = new Error("Only Depratment Manager can update user active status.");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    const targetUser = await sql.query`
+        SELECT UserID, DepartmentID, IsActive
+        FROM Users
+        WHERE UserID = ${targetUserId}
+    `;
+
+    if (!targetUser.recordset.length) {
+        const error = new Error("User not found.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const target = targetUser.recordset[0];
+
+    await sql.query`
+        UPDATE Users
+        SET IsActive = ${isActive}
+        WHERE UserID = ${targetUserId}
+    `;
+
+    return {
+        message: "User active status updated successfully.",
+        userId: targetUserId,
+        isActive
+    };
+};
+
+
+module.exports = {
     getusers,
     addUser,
     updateUser,
@@ -630,5 +666,6 @@ const getBranchAndRole = async () => {
     updateUserPss,
     getProjectmanagers,
     getUsersByDepartment,
-    getBranchAndRole
-  };
+    getBranchAndRole,
+    updateUserActiveStatus
+};

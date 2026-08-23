@@ -11,6 +11,23 @@ const getdepartments = async(req , res , next )=>{
     }
 }
 
+const getDepartmentsByProject = async (req, res) => {
+
+    try {
+        const { projectId } = req.params;
+        const departments =
+            await departmentservice.getDepartmentsByProject(projectId);
+        res.json({
+            departments
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            message: error.message
+        });
+    }
+};
+
 module.exports ={
-    getdepartments
+    getdepartments,
+    getDepartmentsByProject
 }

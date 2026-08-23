@@ -14,7 +14,7 @@ const dashboard = async (user) => {
 
     if (
         user.RoleName === Roles.ADMIN ||
-        user.RoleName === Roles.PMO_MANAGER
+        user.RoleName === Roles.PMO_MANAGER 
     ) {
 
         const [
@@ -187,6 +187,42 @@ const dashboard = async (user) => {
 
         latestProjects = latestProjectsResult.recordset;
     }
+    
+
+    else if (user.RoleName === Roles.SECRETARY) {
+
+    const projects = await sql.query`
+        SELECT COUNT(*) AS Total
+        FROM Projects
+    `;
+
+    stats = {
+        projects: projects.recordset[0].Total,
+        tasks: 0,
+        users: 0,
+        overdueTasks: 0,
+        completedTasks: 0
+    };
+
+    const latestProjectsResult = await sql.query`
+
+        SELECT TOP 5
+            p.ProjectID,
+            p.ProjectName,
+            p.Status,
+            u.FullName AS ProjectManager,
+            p.TargetEndDate AS DueDate
+
+        FROM Projects p
+
+        LEFT JOIN Users u
+            ON p.ProjectManagerID = u.UserID
+
+        ORDER BY p.ProjectID DESC
+    `;
+
+    latestProjects = latestProjectsResult.recordset;
+}
 
 
 
@@ -426,7 +462,8 @@ const getProgress = async (user) => {
 
     if (
         user.RoleName === Roles.ADMIN ||
-        user.RoleName === Roles.PMO_MANAGER
+        user.RoleName === Roles.PMO_MANAGER ||
+        user.RoleName === Roles.SECRETARY
     ) {
 
         result = await sql.query`
@@ -447,6 +484,8 @@ const getProgress = async (user) => {
             ORDER BY p.ProjectID DESC
         `;
     }
+
+    
 
 
     else if (user.RoleName === Roles.DEPARTMENT_MANAGER) {
@@ -1179,6 +1218,8 @@ const getTaskPriority = async (user) => {
             ORDER BY Count DESC
         `;
     }
+
+  
 
 
 

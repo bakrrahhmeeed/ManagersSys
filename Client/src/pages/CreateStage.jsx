@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+
+import DashboardLayout from "../layouts/DashboardLayout";
+
 import {
     FaLayerGroup,
     FaBuilding,
@@ -13,10 +16,11 @@ import {
 
 import {
     createStage,
-    getDepartmentManagers
+    getDepartmentManagers,
+    getProjectsWithStages
 } from "../services/stageService";
 
-import { getDepartments } from "../services/departmentService";
+import { getDepartmentsByProject } from "../services/departmentService";
 
 import "../styles/CreateStage.css";
 
@@ -25,10 +29,72 @@ const CreateStage = () => {
 
     const [departments, setDepartments] = useState([]);
     const [managers, setManagers] = useState([]);
+    const [projectName, setProjectName] = useState("");
 
     const [searchParams] = useSearchParams();
 
     const projectId = searchParams.get("projectId");
+
+
+    useEffect(() => {
+
+    if (!projectId) {
+        setDepartments([]);
+        return;
+    }
+
+    const loadDepartments = async () => {
+
+        try {
+
+            const data =
+                await getDepartmentsByProject(projectId);
+
+            setDepartments(data.departments);
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load project departments:",
+                error
+            );
+
+            setDepartments([]);
+
+        }
+    };
+
+    loadDepartments();
+
+}, [projectId]);
+
+    useEffect(() => {
+    const loadProject = async () => {
+        if (!projectId) return;
+
+        try {
+            const projects = await getProjectsWithStages();
+
+            const project = (projects || []).find(
+                p => String(p.ProjectID) === String(projectId)
+            );
+
+            if (project) {
+                setProjectName(project.ProjectName);
+            } else {
+                setError("Project not found.");
+            }
+
+        } catch (err) {
+            setError(
+                err?.response?.data?.message ||
+                "Failed to load project."
+            );
+        }
+    };
+
+    loadProject();
+}, [projectId]);
 
     const [formData, setFormData] = useState({
         stageName: "",
@@ -44,21 +110,21 @@ const CreateStage = () => {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
-    useEffect(() => {
-        const loadDepartments = async () => {
-            try {
-                const data = await getDepartments();
-                setDepartments(data || []);
-            } catch (err) {
-                setError(
-                    err?.response?.data?.message ||
-                    "Failed to load departments."
-                );
-            }
-        };
+    // useEffect(() => {
+    //     const loadDepartments = async () => {
+    //         try {
+    //             const data = await getDepartments();
+    //             setDepartments(data || []);
+    //         } catch (err) {
+    //             setError(
+    //                 err?.response?.data?.message ||
+    //                 "Failed to load departments."
+    //             );
+    //         }
+    //     };
 
-        loadDepartments();
-    }, []);
+    //     loadDepartments();
+    // }, []);
 
     useEffect(() => {
         if (!formData.departmentId) {
@@ -171,11 +237,12 @@ const CreateStage = () => {
     };
 
     return (
+    <DashboardLayout>  
         <div className="create-stage-page">
 
             <div className="create-stage-header">
 
-                <button
+                {/* <button
                     type="button"
                     className="back-button"
                     onClick={() => navigate(-1)}
@@ -185,11 +252,11 @@ const CreateStage = () => {
                 </button>
 
                 <div>
-                    <h1>Add Stage</h1>
+                    <h3>Add Stage</h3>
                     <p>
                         Create a new stage for this project.
                     </p>
-                </div>
+                </div> */}
 
             </div>
 
@@ -202,7 +269,9 @@ const CreateStage = () => {
                     </div>
 
                     <div>
-                        <h2>Stage Information</h2>
+                        <h2>
+    {projectName || "Loading project..."}
+</h2>
                         <p>
                             Enter the details for the new project stage.
                         </p>
@@ -439,6 +508,8 @@ const CreateStage = () => {
             </div>
 
         </div>
+
+    </DashboardLayout>      
     );
 };
 

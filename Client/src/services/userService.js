@@ -86,3 +86,15 @@ export const getUserOptions = async () => {
 
     return response.data;
 };
+
+
+export const updateUserActiveStatus = async (id, isActive) => {
+    const response = await api.put(
+        `/users/update/active/${id}`,
+        {
+            isActive
+        }
+    );
+
+    return response.data;
+};

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState , useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 import DashboardLayout from "../layouts/DashboardLayout";
 
@@ -28,7 +29,9 @@ import "../styles/Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
-
+  const { user } = useContext(AuthContext);
+  
+  
   const [summary, setSummary] = useState(null);
   const [progress, setProgress] = useState(null);
   const [taskStatus, setTaskStatus] = useState([]);
@@ -384,7 +387,7 @@ function Dashboard() {
             </div>
           </div>
 
-
+        {user?.roleName?.toLowerCase()  !== "secretary" && (
           <div className="stat-card">
             <div className="stat-icon tasks-icon">
               ☑
@@ -397,9 +400,9 @@ function Dashboard() {
                 {totalTasks}
               </strong>
             </div>
-          </div>
+          </div>)}
 
-
+{user?.roleName?.toLowerCase()  !== "secretary" && (
           <div className="stat-card">
             <div className="stat-icon users-icon">
               👥
@@ -412,9 +415,9 @@ function Dashboard() {
                 {summary?.stats?.users ?? "—"}
               </strong>
             </div>
-          </div>
+          </div>)}
 
-
+        {user?.roleName?.toLowerCase()  !== "secretary" && (
           <div className="stat-card">
             <div className="stat-icon overdue-icon">
               ⚑
@@ -427,13 +430,14 @@ function Dashboard() {
                 {overdueTasks}
               </strong>
             </div>
-          </div>
+          </div> )}
 
-
+        {user?.roleName?.toLowerCase()  !== "secretary" && (
           <div className="stat-card">
             <div className="stat-icon completed-icon">
               ✓
             </div>
+
 
             <div className="stat-content">
               <span>Completed Tasks</span>
@@ -442,7 +446,9 @@ function Dashboard() {
                 {completedTasks}
               </strong>
             </div>
-          </div>
+
+
+          </div>)}
 
         </div>
 
@@ -727,7 +733,7 @@ function Dashboard() {
           {/* ===================================================
               UPCOMING DEADLINES
           =================================================== */}
-
+{user?.roleName?.toLowerCase()  !== "secretary" && (
           <section className="dashboard-panel deadlines-panel">
 
             <div className="panel-header">
@@ -819,6 +825,7 @@ function Dashboard() {
             </div>
 
           </section>
+        )}
 
 
           {/* ===================================================

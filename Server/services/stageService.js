@@ -1,8 +1,11 @@
 const sql = require('mssql');
+const Roles = require("../constants/roles")
 const {
     getStageProgress,
     getProjectProgress
 } = require("../middleware/calculateProgress");
+
+
 
 const getAllStages = async () => {
     const result = await sql.query`select * from ProjectStages`;
@@ -360,82 +363,98 @@ const updateStage = async (id, data) => {
         stageName,
         stageOrder,
         status,
-        progressPercent,
         endDate,
-        actualEndDate,
         responsibleUserId,
-        notes,
-        departmentId
+        notes
     } = data;
 
-   
+
     const existingStage = await sql.query`
         SELECT *
         FROM ProjectStages
         WHERE StageID = ${id}
     `;
 
+
     if (existingStage.recordset.length === 0) {
+
         const error = new Error("Stage not found.");
         error.statusCode = 404;
         throw error;
     }
 
+
     const currentStage = existingStage.recordset[0];
 
-    const finalStatus = status ?? currentStage.Status;
-    const finalProgress = progressPercent ?? currentStage.ProgressPercent;
-    const finalActualEndDate = actualEndDate ?? currentStage.ActualEndDate;
 
-   
+    if (currentStage.Status === "Completed") {
 
-    if (finalProgress < 0 || finalProgress > 100) {
-        const error = new Error("Progress must be between 0 and 100.");
+        const error = new Error(
+            "Completed stages cannot be modified."
+        );
+
+        error.statusCode = 403;
+        throw error;
+    }
+
+
+    const finalStatus =
+        status ?? currentStage.Status;
+
+
+    const allowedStatuses = [
+        "Not Started",
+        "In Progress",
+        "Blocked",
+        "Completed"
+    ];
+
+
+    if (!allowedStatuses.includes(finalStatus)) {
+
+        const error = new Error(
+            "Invalid stage status."
+        );
+
         error.statusCode = 400;
         throw error;
     }
 
-    if (finalStatus === "Completed" && finalProgress !== 100) {
-        const error = new Error("Completed stage must have 100% progress.");
-        error.statusCode = 400;
-        throw error;
+
+    let finalActualEndDate = null;
+
+
+    if (finalStatus === "Completed") {
+        finalActualEndDate = new Date();
     }
 
-    if (finalStatus === "Not Started" && finalProgress > 0) {
-        const error = new Error("Not Started stage must have 0% progress.");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    if (finalStatus === "Completed" && !finalActualEndDate) {
-        const error = new Error("Actual end date is required when the stage is completed.");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    if (
-    finalStatus !== "Completed" &&
-    finalActualEndDate
-) {
-    const error = new Error(
-        "Actual end date can only be set when the stage is completed."
-    );
-    error.statusCode = 400;
-    throw error;
-}
 
     const result = await sql.query`
         UPDATE ProjectStages
         SET
-            StageName = COALESCE(${stageName}, StageName),
-            StageOrder = COALESCE(${stageOrder}, StageOrder),
-            Status = COALESCE(${status}, Status),
-            ProgressPercent = COALESCE(${progressPercent}, ProgressPercent),
-            EndDate = COALESCE(${endDate}, EndDate),
-            ActualEndDate = COALESCE(${actualEndDate}, ActualEndDate),
-            ResponsibleUserID = COALESCE(${responsibleUserId}, ResponsibleUserID),
-            Notes = COALESCE(${notes}, Notes),
-            DepartmentID = COALESCE(${departmentId}, DepartmentID)
+            StageName =
+                COALESCE(${stageName}, StageName),
+
+            StageOrder =
+                COALESCE(${stageOrder}, StageOrder),
+
+            Status =
+                COALESCE(${status}, Status),
+
+            EndDate =
+                COALESCE(${endDate}, EndDate),
+
+            ActualEndDate =
+                ${finalActualEndDate},
+
+            ResponsibleUserID =
+                COALESCE(
+                    ${responsibleUserId},
+                    ResponsibleUserID
+                ),
+
+            Notes =
+                COALESCE(${notes}, Notes)
 
         OUTPUT
             INSERTED.StageID,
@@ -443,7 +462,6 @@ const updateStage = async (id, data) => {
             INSERTED.StageName,
             INSERTED.StageOrder,
             INSERTED.Status,
-            INSERTED.ProgressPercent,
             INSERTED.StartDate,
             INSERTED.EndDate,
             INSERTED.ActualEndDate,
@@ -453,6 +471,7 @@ const updateStage = async (id, data) => {
 
         WHERE StageID = ${id};
     `;
+
 
     return {
         message: "Stage updated successfully",
@@ -495,31 +514,92 @@ if (tasks.recordset.length > 0) {
     };      
 }
 
-const getStage = async (id) => {
+// const getStage = async (id) => {
+
+
+//     const result = await sql.query`
+//         SELECT
+//             s.*,
+//             p.ProjectName,
+//             u.FullName AS ResponsibleUser,
+//             d.DepartmentName
+//         FROM ProjectStages s
+//         JOIN Projects p
+//             ON s.ProjectID = p.ProjectID
+//         LEFT JOIN Users u
+//             ON s.ResponsibleUserID = u.UserID
+//         LEFT JOIN Departments d
+//             ON s.DepartmentID = d.DepartmentID
+//         WHERE s.StageID = ${id}
+//     `;
+
+//     if (result.recordset.length === 0) {
+//         const error = new Error("Stage not found.");
+//         error.statusCode = 404;
+//         throw error;
+//     }
+
+//     return result.recordset[0];
+// };
+
+
+
+const getStage = async (id, user) => {
 
     const result = await sql.query`
         SELECT
             s.*,
             p.ProjectName,
+            p.ProjectManagerID,
             u.FullName AS ResponsibleUser,
             d.DepartmentName
         FROM ProjectStages s
+
         JOIN Projects p
             ON s.ProjectID = p.ProjectID
+
         LEFT JOIN Users u
             ON s.ResponsibleUserID = u.UserID
+
         LEFT JOIN Departments d
             ON s.DepartmentID = d.DepartmentID
+
         WHERE s.StageID = ${id}
     `;
 
+
     if (result.recordset.length === 0) {
+
         const error = new Error("Stage not found.");
         error.statusCode = 404;
         throw error;
+
     }
 
-    return result.recordset[0];
+
+    const stage = result.recordset[0];
+
+
+    if (user.RoleName === Roles.PROJECT_MANAGER) {
+
+        if (
+            Number(stage.ProjectManagerID) !==
+            Number(user.UserID)
+        ) {
+
+            const error = new Error(
+                "You can only access stages from projects you manage."
+            );
+
+            error.statusCode = 403;
+            throw error;
+
+        }
+
+    }
+
+
+    return stage;
 };
 
 const getStagesByProject = async (projectId) => {
@@ -531,7 +611,7 @@ const getStagesByProject = async (projectId) => {
             p.ProjectManagerID,
             pm.FullName AS ProjectManager,
             p.StartDate AS ProjectStartDate,
-            p.EndDate AS ProjectEndDate,
+            p.TargetEndDate AS ProjectEndDate,
             p.Status AS ProjectStatus,
 
             s.StageID,
@@ -723,19 +803,23 @@ const getProjectsWithStages = async (user) => {
                 s.DepartmentID,
                 d.DepartmentName
 
-            FROM Projects p
+FROM Projects p
 
-            LEFT JOIN Users pm
-                ON p.ProjectManagerID = pm.UserID
+LEFT JOIN Users pm
+    ON p.ProjectManagerID = pm.UserID
 
-            LEFT JOIN ProjectStages s
-                ON p.ProjectID = s.ProjectID
+LEFT JOIN ProjectStages s
+    ON p.ProjectID = s.ProjectID
+    AND (
+        @role <> 'department manager'
+        OR s.DepartmentID = @departmentId
+    )
 
-            LEFT JOIN Users ru
-                ON s.ResponsibleUserID = ru.UserID
+LEFT JOIN Users ru
+    ON s.ResponsibleUserID = ru.UserID
 
-            LEFT JOIN Departments d
-                ON s.DepartmentID = d.DepartmentID
+LEFT JOIN Departments d
+    ON s.DepartmentID = d.DepartmentID
 
             WHERE
                 (

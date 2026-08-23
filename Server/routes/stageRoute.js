@@ -30,11 +30,18 @@ router.get("/departmentmanagers/:departmentId", authorizeRoles
 )
 
 router.get('/', authorizeRoles("Administrator"), getAllStages);
-router.post('/', authorizeRoles("Administrator"), createStage);
-router.put('/:id', authorizeRoles("Administrator"), updateStage);
+router.post('/',authorizeRoles(
+    Roles.ADMIN,
+    Roles.PROJECT_MANAGER), createStage);
+router.put('/:id', authorizeRoles(Roles.ADMIN , Roles.PROJECT_MANAGER), updateStage);
 router.delete('/:id', authorizeRoles("Administrator"), deleteStage);
-router.get('/:id',authorizeRoles("Administrator"), getStage);
-router.get("/project/:projectId",authorizeRoles("Administrator"),getStagesByProject);
+router.get('/:id',authorizeRoles(Roles.ADMIN , Roles.PROJECT_MANAGER), getStage);
+
+router.get("/project/:projectId",authorizeRoles(
+    Roles.ADMIN,
+    Roles.DEPARTMENT_MANAGER,
+    Roles.PROJECT_MANAGER
+),getStagesByProject);
 
 
 
