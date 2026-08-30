@@ -72,7 +72,7 @@ const handleAddComment = async () => {
                 const token = localStorage.getItem("token");
 
                 const response = await fetch(
-                    `http://localhost:3001/api/project/${projectId}/details`,
+                    `http://30.30.30.90:3001/api/project/${projectId}/details`,
                     {
                         method: "GET",
                         headers: {

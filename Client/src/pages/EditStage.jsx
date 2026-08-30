@@ -55,7 +55,7 @@ const EditStage = () => {
                 const token = localStorage.getItem("token");
 
                 const response = await fetch(
-                    `http://localhost:3001/api/stages/${id}`,
+                    `http://30.30.30.90:3001/api/stages/${id}`,
                     {
                         headers: {
                             Accept: "application/json",
